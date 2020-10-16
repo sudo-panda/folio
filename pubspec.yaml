@@ -34,8 +34,6 @@ dependencies:
   file_picker: ^2.0.6
   html: ^0.14.0+4
   http: ^0.12.2
-
-  requests: ^3.3.0
   dio: ^3.0.10
 
 flutter_icons:

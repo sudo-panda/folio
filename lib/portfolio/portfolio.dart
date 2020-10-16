@@ -82,7 +82,7 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color.fromRGBO(255, 0, 0, 1),
+                  Color.fromRGBO(255, 0, 0, 0.5),
                   Theme.of(context).scaffoldBackgroundColor,
                 ],
                 stops: [0.0, 1],

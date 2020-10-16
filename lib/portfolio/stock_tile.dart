@@ -30,7 +30,7 @@ class StockTile extends StatefulWidget {
 class _StockTileState extends State<StockTile> implements StockTileContract {
   StockData _stockData;
   bool _isExpanded;
-  bool _canRefresh;
+  bool _isRefreshing;
   bool _isPinned;
   bool _isVisible;
   StockDataPresenter _stockDataPresenter;
@@ -41,7 +41,7 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
     _isExpanded = widget.expand;
     _isPinned = widget.pinned;
     _stockData = widget.stockData;
-    _canRefresh = false;
+    _isRefreshing = true;
     _stockDataPresenter = StockDataPresenter(this, _stockData);
     _isVisible = true;
   }
@@ -107,7 +107,7 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
                   Text(
                     _stockData?.lastValue?.toStringAsFixed(2) ?? "—",
                     style:
-                        TextStyle(fontWeight: FontWeight.w100, fontSize: 17.0),
+                        TextStyle(fontWeight: FontWeight.w100, fontSize: 20.0),
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -117,13 +117,13 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
                             ? "${_stockData.percentChange}%"
                             : "/",
                         style: TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.bold),
+                            fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(width: 10),
                       Text(
                         _stockData.change ?? "/",
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: _stockData.changeSign == 1
                               ? Colors.green
@@ -142,6 +142,8 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
               child: Text(
                 _stockData?.netAmount?.toStringAsFixed(2) ?? "—",
                 style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.normal,
                     color: _stockData.netSign == 1
                         ? Colors.green
                         : _stockData.netSign == -1
@@ -270,8 +272,14 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
             SizedBox(
               height: 27.0,
               width: 50.0,
-              child: _canRefresh
-                  ? null
+              child: _isRefreshing
+                  ? Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2,),
+                    ),
+                  )
                   : IconButton(
                       padding: EdgeInsets.all(0.0),
                       icon: Icon(Icons.refresh),
@@ -325,15 +333,18 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
   }
 
   void _refresh() {
+    setState(() {
+      _isRefreshing = true;
+    });
     _stockDataPresenter.refreshNow();
   }
-
 
   @override
   void currentStockDataUpdate(CurrentStockData newData) {
     setState(() {
       _stockData.current = newData;
       _stockData.calculateNet();
+      _isRefreshing = false;
     });
   }
 }
