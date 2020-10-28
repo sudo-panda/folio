@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:folio/database/database_helper.dart';
 import 'package:folio/models/stocks/stock.dart';
 import 'package:folio/models/stocks/stock_data.dart';
+import 'package:folio/portfolio/database_access.dart';
 import 'package:folio/settings/settings.dart';
 import 'package:folio/portfolio/portfolio_list.dart';
 
@@ -16,26 +17,6 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
   Future<List<StockData>> _pinnedStockFuture;
   Future<List<StockData>> _unpinnedStockFuture;
 
-  static Future<List<StockData>> getPinnedStockData() async {
-    List<Map> tuples = await DatabaseHelper().getPinnedTuples();
-    List<StockData> stocksdata = [];
-    tuples.forEach((element) {
-      stocksdata.add(StockData(Stock.fromPortfolioTuple(element)));
-    });
-
-    return stocksdata;
-  }
-
-  static Future<List<StockData>> getUnpinnedStockData() async {
-    List<Map> tuples = await DatabaseHelper().getUnpinnedTuples();
-    List<StockData> stocksdata = [];
-    tuples.forEach((element) {
-      stocksdata.add(StockData(Stock.fromPortfolioTuple(element)));
-    });
-
-    return stocksdata;
-  }
-
   Future<bool> hasData() async {
     if ((await _pinnedStockFuture).length == 0 &&
         (await _unpinnedStockFuture).length == 0) return false;
@@ -46,8 +27,8 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
   @override
   void initState() {
     super.initState();
-    _pinnedStockFuture = getPinnedStockData();
-    _unpinnedStockFuture = getUnpinnedStockData();
+    _pinnedStockFuture = DatabaseAccess.getPinnedStockData();
+    _unpinnedStockFuture = DatabaseAccess.getUnpinnedStockData();
   }
 
   @override
@@ -103,7 +84,7 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
           ),
         ),
         PortfolioList(
-          future: getPinnedStockData(),
+          future: _pinnedStockFuture,
           pinned: true,
         ),
         FutureBuilder(
@@ -158,7 +139,7 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
           },
         ),
         PortfolioList(
-          future: getUnpinnedStockData(),
+          future: _unpinnedStockFuture,
           pinned: false,
         )
       ],

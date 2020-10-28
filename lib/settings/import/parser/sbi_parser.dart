@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:folio/settings/import/parser/parser.dart';
-import 'package:folio/models/statement.dart';
+import 'package:folio/models/tradelog.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 
@@ -12,7 +12,7 @@ class SBIParser extends Parser {
   }
 
   @override
-  List<Statement> get statementsList {
+  List<TradeLog> get statementsList {
     List<String> headers = [];
 
     for (var cell in this
@@ -24,20 +24,31 @@ class SBIParser extends Parser {
       headers.add(cell.innerHtml);
     }
     log(headers.toString());
-    List<Statement> statements = [];
+    List<TradeLog> statements = [];
 
     for (var row in this
         ._html
         .querySelector("#grdViewTradeDetail")
         .querySelectorAll("tr")
         .skip(1)) {
+      DateTime dateTime;
       String exchange, code, scripCode, scripName;
-      int qty = 0;
-      double rate = 0;
+      int buyQty = 0, sellQty = 0;
+      double buyRate = 0, sellRate = 0;
 
       int i = 0;
       for (var cell in row.querySelectorAll("td")) {
         switch (headers[i]) {
+          case "Date":
+            dateTime = DateTime.utc(
+                int.parse(cell.innerHtml
+                    .substring(cell.innerHtml.lastIndexOf('/') + 1)),
+                int.parse(cell.innerHtml.substring(
+                    cell.innerHtml.indexOf('/') + 1,
+                    cell.innerHtml.lastIndexOf('/'))),
+                int.parse(
+                    cell.innerHtml.substring(0, cell.innerHtml.indexOf('/'))));
+            break;
           case "Exch":
             exchange = cell.innerHtml;
             break;
@@ -49,16 +60,16 @@ class SBIParser extends Parser {
                 parse(parse(cell.innerHtml).body.text).documentElement.text;
             break;
           case "Buy Qty":
-            qty += int.parse(cell.innerHtml);
+            buyQty += int.parse(cell.innerHtml);
             break;
           case "Sold Qty":
-            qty += -int.parse(cell.innerHtml);
+            sellQty -= int.parse(cell.innerHtml);
             break;
           case "Buy Rate":
-            rate += double.parse(cell.innerHtml);
+            buyRate += double.parse(cell.innerHtml);
             break;
           case "Sold Rate":
-            rate += double.parse(cell.innerHtml);
+            sellRate += double.parse(cell.innerHtml);
             break;
           default:
             break;
@@ -73,7 +84,11 @@ class SBIParser extends Parser {
           code = scripName;
           break;
       }
-      statements.add(Statement(code, exchange, qty, rate));
+      if (buyQty > 0)
+        statements.add(TradeLog(dateTime, code, exchange, true, buyQty, buyRate));
+
+      if (sellQty > 0)
+        statements.add(TradeLog(dateTime, code, exchange, false, sellQty, sellRate));
     }
 
     return statements;

@@ -5,7 +5,7 @@ class CurrentStockData {
   int sign;
   String updated;
 
-  CurrentStockData(); //TODO: remove
+  CurrentStockData();
 
   CurrentStockData.fromData(
       this.value, this.change, this.percentageChange, this.sign, this.updated);

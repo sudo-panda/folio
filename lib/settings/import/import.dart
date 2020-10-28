@@ -74,7 +74,14 @@ class _ImportAreaState extends State<ImportArea> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               RaisedButton(
-                child: _isButtonEnabled ? Text("Browse") : SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 1,)),
+                child: _isButtonEnabled
+                    ? Text("Browse")
+                    : SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1,
+                        )),
                 onPressed: _isButtonEnabled ? importTrades : null,
               )
             ],
@@ -97,7 +104,7 @@ class _ImportAreaState extends State<ImportArea> {
 
       var list = SBIParser(file).statementsList;
 
-      await DatabaseHelper().updateFromStatements(list);
+      await DatabaseHelper().updateFromTradeLogs(list);
     }
 
     setState(() {

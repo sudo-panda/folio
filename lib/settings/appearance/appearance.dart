@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:folio/preferences/shared_preferences_helper.dart';
 
 import 'dropdown.dart';
 
 class AppearanceRoute extends StatelessWidget {
+  static List<String> themes = ['Light', 'Dark', 'System'];
+  static List<String> indices = ['Sensex', 'Nifty'];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +36,11 @@ class AppearanceRoute extends StatelessWidget {
                 ),
                 Expanded(child: Text("Theme")),
                 Expanded(
-                  child: Dropdown(<String>['Light', 'Dark', 'System'], 0),
+                  child: Dropdown(themes,
+                      SharedPreferencesHelper().getString('theme') ?? themes[0],
+                      (String newValue) {
+                    SharedPreferencesHelper().setString('theme', newValue);
+                  }),
                 ),
               ],
             ),
@@ -47,7 +54,11 @@ class AppearanceRoute extends StatelessWidget {
                 ),
                 Expanded(child: Text("Main Index")),
                 Expanded(
-                  child: Dropdown(<String>['Sensex', 'Nifty'], 0),
+                  child: Dropdown(indices,
+                      SharedPreferencesHelper().getString('index') ?? indices[0],
+                      (String newValue) {
+                    SharedPreferencesHelper().setString('index', newValue);
+                  }),
                 ),
               ],
             ),

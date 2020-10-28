@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:folio/contracts/stock_tile_contract.dart';
 import 'package:folio/database/database_helper.dart';
 import 'package:folio/models/stocks/stock_data.dart';
-import 'package:folio/services/query_api.dart';
+import 'package:folio/services/query/query_api.dart';
 
 class StockDataPresenter {
   StockTileContract _view;
@@ -21,7 +21,14 @@ class StockDataPresenter {
     var code = _stockData?.code;
     var exchange = _stockData?.exchange;
     var name = await QueryAPI.getName(exchange: exchange, code: code);
-    DatabaseHelper().updateName(code: code, exchange: exchange, name: name);
+
+    DatabaseHelper().updateConditionally(
+      DatabaseHelper.tablePortfolio,
+      {'${DatabaseHelper.colName}': name},
+      "${DatabaseHelper.colCode} = ? and ${DatabaseHelper.colExchange} = ?",
+      [code, exchange],
+    );
+
     _stockData?.name = name;
   }
 
@@ -34,6 +41,7 @@ class StockDataPresenter {
         exchange: _stockData.exchange,
         code: _stockData.code,
         key: _stockData.key);
+
     _view?.currentStockDataUpdate(newData);
   }
 

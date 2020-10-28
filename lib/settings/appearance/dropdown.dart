@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 
 class Dropdown extends StatefulWidget {
-  const Dropdown(
-    this.list,
-    this.choice,
-  );
+  const Dropdown(this.list, this.choice, this.action);
 
   // the list for the dropdown
   final List<String> list;
 
   // the value to show initially in the dropdown
-  final int choice;
+  final String choice;
+
+  final Function(String) action;
 
   @override
   _DropdownState createState() => _DropdownState();
@@ -28,7 +27,7 @@ class _DropdownState extends State<Dropdown> {
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
-      value: widget.list[choice],
+      value: choice,
       isExpanded: true,
       icon: Align(
         child: Icon(Icons.arrow_drop_down_rounded),
@@ -44,11 +43,7 @@ class _DropdownState extends State<Dropdown> {
       ),
       onChanged: (String newValue) {
         setState(() {
-          for (var i = 0; i < widget.list.length; i++) {
-            if (newValue == widget.list[i]) {
-              choice = i;
-            }
-          }
+          choice = newValue;
         });
       },
       items: widget.list.map<DropdownMenuItem<String>>((String value) {

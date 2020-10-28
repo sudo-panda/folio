@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:folio/database/database_helper.dart';
 import 'package:folio/models/stocks/current_stock_data.dart';
+import 'package:folio/services/database_access.dart';
 import 'package:folio/services/query/query_bse_api.dart';
 import 'package:flutter/foundation.dart';
 import 'package:folio/services/query/query_nse_api.dart';
@@ -21,7 +21,7 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
-      DatabaseHelper().updateKey(exchange: exchange, code: code, key: key);
+      DatabaseAccess.updateKey(code, exchange, key);
     }
 
     var dio = Dio()
@@ -76,9 +76,9 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
-      DatabaseHelper().updateKey(exchange: exchange, code: code, key: key);
+      DatabaseAccess.updateKey(code, exchange, key);
     }
-    
+
     var dio = Dio()
       ..options.headers = {
         'User-Agent'.toLowerCase():

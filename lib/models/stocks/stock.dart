@@ -1,5 +1,5 @@
 // import 'package:folio/services/search.dart';
-import 'package:folio/models/statement.dart';
+import 'package:folio/models/tradelog.dart';
 
 class Stock {
   String name;
@@ -42,14 +42,15 @@ class Stock {
 
   Future get initializationDone => _isInitialized;
 
-  set trade(Statement statement) {
-    if ((this.qty + statement.qty) == 0) {
+  set trade(TradeLog statement) {
+    var newQty = (statement.bought ? 1 : -1) * statement.qty;
+    if ((this.qty + newQty) == 0) {
       this._rate = 0;
     } else {
-      this._rate = (this._rate * this.qty + statement.rate * statement.qty) /
-          (this.qty + statement.qty);
+      this._rate = (this._rate * this.qty + statement.rate * newQty) /
+          (this.qty + newQty);
     }
-    this.qty += statement.qty;
+    this.qty += newQty;
   }
 
   Map<String, dynamic> toPortfolioTuple() {

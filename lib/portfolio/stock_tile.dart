@@ -3,10 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:folio/assets/folio_icons.dart';
 import 'package:folio/contracts/stock_tile_contract.dart';
+import 'package:folio/portfolio/database_access.dart';
+import 'package:folio/portfolio/trades/trades.dart';
 import 'package:folio/models/stocks/current_stock_data.dart';
 import 'package:folio/models/stocks/stock_data.dart';
 import 'package:folio/presenters/stock_data_presenter.dart';
-import 'package:folio/services/query/query_bse_api.dart';
 
 class StockTile extends StatefulWidget {
   const StockTile({
@@ -272,14 +273,32 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
             SizedBox(
               height: 27.0,
               width: 50.0,
+              child: IconButton(
+                padding: EdgeInsets.all(0.0),
+                icon: Icon(Icons.backup_table_rounded),
+                iconSize: 25.0,
+                splashRadius: 25.0,
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return TradesRoute();
+                  }));
+                },
+                tooltip: "Open Database",
+              ),
+            ),
+            SizedBox(
+              height: 27.0,
+              width: 50.0,
               child: _isRefreshing
                   ? Center(
-                    child: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2,),
-                    ),
-                  )
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
                   : IconButton(
                       padding: EdgeInsets.all(0.0),
                       icon: Icon(Icons.refresh),
@@ -326,10 +345,14 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
     ]);
   }
 
-  void _onPinPressed() {
-    setState(() {
-      _isPinned = !_isPinned;
-    });
+  void _onPinPressed() async {
+    bool res = await DatabaseAccess.updatePinned(
+        _stockData.code, _stockData.exchange, !_isPinned);
+    if (res) {
+      setState(() {
+        _isPinned = !_isPinned;
+      });
+    }
   }
 
   void _refresh() {

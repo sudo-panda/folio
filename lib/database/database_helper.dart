@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:folio/models/stocks/stock.dart';
-import 'package:folio/models/statement.dart';
+import 'package:folio/models/tradelog.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -14,6 +14,7 @@ class DatabaseHelper {
   static Database _db;
 
   static String tablePortfolio = 'Portfolio';
+  static String tableTradeLog = 'TradeLog';
 
   static String colCode = 'code';
   static String colExchange = 'exchange';
@@ -22,6 +23,8 @@ class DatabaseHelper {
   static String colQty = 'qty';
   static String colRate = 'rate';
   static String colPinned = 'pinned';
+  static String colBought = 'bought';
+  static String colDate = 'date';
 
   Future<Database> get db async {
     if (_db != null) return _db;
@@ -49,18 +52,21 @@ class DatabaseHelper {
         '$colPinned INTEGER,'
         'PRIMARY KEY ($colCode, $colExchange)'
         ')');
-    // await db.execute('CREATE TABLE StockAPI ('
+    await db.execute('CREATE TABLE $tableTradeLog ('
+        '$colDate TEXT,'
+        '$colCode TEXT,'
+        '$colExchange TEXT,'
+        '$colBought INTEGER,'
+        '$colQty INTEGER,'
+        '$colRate REAL,'
+        'PRIMARY KEY ($colDate, $colCode, $colExchange, $colBought, $colQty, $colRate)'
+        ')');
+    // await db.execute('CREATE TABLE IndexAPI ('
     //     'code TEXT,'
     //     'exchange TEXT,'
     //     'key TEXT,'
     //     'PRIMARY KEY (code, exchange)'
     //     ')');
-    await db.execute('CREATE TABLE IndexAPI ('
-        'code TEXT,'
-        'exchange TEXT,'
-        'key TEXT,'
-        'PRIMARY KEY (code, exchange)'
-        ')');
   }
 
   void _deleteDb() async {
@@ -73,124 +79,46 @@ class DatabaseHelper {
     _deleteDb();
   }
 
-  Future<int> saveStock(Stock stock) async {
+  Future<int> saveTuple(String table, Map<String, dynamic> tuple) async {
     var dbClient = await db;
-    int res = await dbClient.insert(tablePortfolio, {
-      ...stock.toPortfolioTuple(),
-      ...{'pinned': 0},
-    });
+    int res = await dbClient.insert(table, tuple);
     return res;
   }
 
-  Future<int> saveTuple(Map<String, dynamic> tuple) async {
-    var dbClient = await db;
-    int res = await dbClient.insert(tablePortfolio, tuple);
-    return res;
-  }
-
-  Future<int> getCount() async {
+  Future<int> getCount(String table) async {
     var dbClient = await db;
     int count = Sqflite.firstIntValue(
-        await dbClient.rawQuery('SELECT COUNT(*) FROM $tablePortfolio'));
+        await dbClient.rawQuery('SELECT COUNT(*) FROM $table'));
     return count;
   }
 
-  Future<List<Stock>> getAllStocks() async {
+  Future<List<Map>> getAllTuples(String table) async {
     var dbClient = await db;
-    List<Map> result = await dbClient.query(tablePortfolio);
-
-    List<Stock> stocks = [];
-    result.forEach((row) => stocks.add(Stock.fromPortfolioTuple(row)));
-    return stocks;
-  }
-
-  Future<List<Map>> getAllTuples() async {
-    var dbClient = await db;
-    List<Map> result = await dbClient.query(tablePortfolio);
+    List<Map> result = await dbClient.query(table);
 
     return result;
   }
 
-  Future<List<Stock>> getPinnedStocks() async {
+  Future<List<Map>> getQuery(
+      String table, String where, List<dynamic> whereArgs) async {
     var dbClient = await db;
-    List<Map> result = await dbClient
-        .query(tablePortfolio, where: '$colPinned = ?', whereArgs: [1]);
-
-    List<Stock> stocks = [];
-    result.forEach((row) => stocks.add(Stock.fromPortfolioTuple(row)));
-    return stocks;
+    return await dbClient.query(table, where: where, whereArgs: whereArgs);
   }
 
-  Future<List<Map>> getPinnedTuples() async {
+  Future<bool> updateAll(String table, Map<String, dynamic> tuple) async {
     var dbClient = await db;
-    List<Map> result = await dbClient
-        .query(tablePortfolio, where: '$colPinned = ?', whereArgs: [1]);
-    return result;
-  }
-
-  Future<List<Stock>> getUnpinnedStocks() async {
-    var dbClient = await db;
-    List<Map> result = await dbClient
-        .query(tablePortfolio, where: '$colPinned = ?', whereArgs: [0]);
-
-    List<Stock> stocks = [];
-    result.forEach((row) => stocks.add(Stock.fromPortfolioTuple(row)));
-    return stocks;
-  }
-
-  Future<List<Map>> getUnpinnedTuples() async {
-    var dbClient = await db;
-    List<Map> result = await dbClient
-        .query(tablePortfolio, where: '$colPinned = ?', whereArgs: [0]);
-
-    return result;
-  }
-
-  Future<int> deleteStock(Stock stock) async {
-    var dbClient = await db;
-
-    int res = await dbClient.delete(tablePortfolio,
-        where: '$colCode = ? and $colExchange = ?',
-        whereArgs: [stock.code, stock.exchange]);
-
-    return res;
-  }
-
-  Future<bool> updateFromStock(Stock stock) async {
-    var dbClient = await db;
-    int res = await dbClient.update(
-      tablePortfolio,
-      stock.toPortfolioTuple(),
-      where: "$colCode = ? and $colExchange = ?",
-      whereArgs: [stock.code, stock.exchange],
-    );
+    int res = await dbClient.update(table, tuple);
     return res > 0 ? true : false;
   }
 
-  Future<bool> updateName(
-      {@required String exchange,
-      @required String code,
-      @required String name}) async {
+  Future<bool> updateConditionally(String table, Map<String, dynamic> tuple,
+      String where, List<String> whereArgs) async {
     var dbClient = await db;
     int res = await dbClient.update(
-      tablePortfolio,
-      {'$colName': name},
-      where: "$colCode = ? and $colExchange = ?",
-      whereArgs: [code, exchange],
-    );
-    return res > 0 ? true : false;
-  }
-
-  Future<bool> updateKey(
-      {@required String exchange,
-      @required String code,
-      @required String key}) async {
-    var dbClient = await db;
-    int res = await dbClient.update(
-      tablePortfolio,
-      {'$colKey': key},
-      where: "$colCode = ? and $colExchange = ?",
-      whereArgs: [code, exchange],
+      table,
+      tuple,
+      where: where,
+      whereArgs: whereArgs,
     );
     return res > 0 ? true : false;
   }
@@ -206,33 +134,52 @@ class DatabaseHelper {
     return res > 0 ? true : false;
   }
 
-  Future updateFromStatements(List<Statement> statements) async {
+  Future updateFromTradeLogs(List<TradeLog> tradeLogs) async {
     var dbClient = await db;
     var doneTransaction = await dbClient.transaction((txn) async {
       int i = 0;
-      for (var statement in statements) {
+      for (var tradeLog in tradeLogs) {
         print(i++);
-        List<Map> queryResult = await txn.query(tablePortfolio,
-            where: "$colCode = ? and $colExchange = ?",
-            whereArgs: [statement.code, statement.exchange]);
+        try {
+          await txn.insert(tableTradeLog, tradeLog.toTradeLogTuple());
+        } on DatabaseException catch (e) {
+          if (e.isUniqueConstraintError()) {
+            continue;
+          } else {
+            throw e;
+          }
+        }
 
-        if (queryResult.length == 0) {
+        try {
           await txn.insert(tablePortfolio, {
-            '$colExchange': statement.exchange,
-            '$colCode': statement.code,
-            '$colQty': statement.qty,
-            '$colRate': statement.rate,
+            '$colExchange': tradeLog.exchange,
+            '$colCode': tradeLog.code,
+            '$colQty': tradeLog.qty,
+            '$colRate': tradeLog.rate,
             '$colPinned': 0,
           });
-        } else {
-          Stock stock = Stock.fromPortfolioTuple(queryResult.first);
-          stock.trade = statement;
-          await txn.update(
-            tablePortfolio,
-            stock.toPortfolioTuple(),
-            where: "$colCode = ? and $colExchange = ?",
-            whereArgs: [stock.code, stock.exchange],
-          );
+        } on DatabaseException catch (e) {
+
+          if (e.isUniqueConstraintError()) {
+
+            List<Map> queryResult = await txn.query(tablePortfolio,
+                where: "$colCode = ? and $colExchange = ?",
+                whereArgs: [tradeLog.code, tradeLog.exchange]);
+
+            Stock stock = Stock.fromPortfolioTuple(queryResult.first);
+
+            stock.trade = tradeLog;
+
+            await txn.update(
+              tablePortfolio,
+              stock.toPortfolioTuple(),
+              where: "$colCode = ? and $colExchange = ?",
+              whereArgs: [stock.code, stock.exchange],
+            );
+
+          } else {
+            throw e;
+          }
         }
       }
     });

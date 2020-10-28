@@ -9,11 +9,18 @@ class StockData {
 
   static Duration interval = Duration(seconds: 15);
 
-  static final double brokerage = 0.15;
+  static final double brokerage = 0;
 
   StockData(Stock stock)
       : _stock = stock,
         assert(stock != null) {
+    _current = new CurrentStockData();
+    _net = new Net();
+  }
+
+  StockData.fromPortfolioTuple(Map<String, dynamic> tuple)
+      : assert(tuple != null),
+        _stock = Stock.fromPortfolioTuple(tuple) {
     _current = new CurrentStockData();
     _net = new Net();
   }
