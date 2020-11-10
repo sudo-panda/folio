@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:folio/portfolio/portfolio.dart';
+import 'package:folio/views/portfolio/portfolio.dart';
 
 void main() => runApp(MyApp());
 

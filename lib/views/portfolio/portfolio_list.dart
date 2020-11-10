@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:folio/models/stocks/stock_data.dart';
-import 'package:folio/portfolio/stock_tile.dart';
-import 'package:folio/services/query/query_nse_api.dart';
+import 'package:folio/views/portfolio/stock_tile.dart';
 
 class PortfolioList extends StatefulWidget {
   PortfolioList({Key key, @required this.future, @required this.pinned})

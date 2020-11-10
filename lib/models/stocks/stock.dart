@@ -1,5 +1,5 @@
 // import 'package:folio/services/search.dart';
-import 'package:folio/models/tradelog.dart';
+import 'package:folio/models/trades/trade_log.dart';
 
 class Stock {
   String name;

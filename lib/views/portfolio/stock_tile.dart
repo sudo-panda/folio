@@ -3,8 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:folio/assets/folio_icons.dart';
 import 'package:folio/contracts/stock_tile_contract.dart';
-import 'package:folio/portfolio/database_access.dart';
-import 'package:folio/portfolio/trades/trades.dart';
+import 'package:folio/views/portfolio/database_access.dart';
+import 'package:folio/views/portfolio/trades/trades.dart';
 import 'package:folio/models/stocks/current_stock_data.dart';
 import 'package:folio/models/stocks/stock_data.dart';
 import 'package:folio/presenters/stock_data_presenter.dart';
@@ -280,7 +280,7 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
                 splashRadius: 25.0,
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return TradesRoute();
+                    return TradesRoute(_stockData);
                   }));
                 },
                 tooltip: "Open Database",

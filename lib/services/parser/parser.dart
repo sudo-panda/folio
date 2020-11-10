@@ -1,4 +1,4 @@
-import 'package:folio/models/tradelog.dart';
+import 'package:folio/models/trades/trade_log.dart';
 
 abstract class Parser {
   String _file;

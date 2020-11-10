@@ -31,9 +31,10 @@ Future<String> searchAPIKey(String code, String exchange) async {
           RegExp(r'data-mid="([a-zA-Z0-9\/]*)"').firstMatch(r.data).group(1);
 
       return match;
+    } else {
+      return null;
     }
   } on Exception {
     return null;
   }
 }
-

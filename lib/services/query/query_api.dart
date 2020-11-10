@@ -58,6 +58,8 @@ class QueryAPI {
                     : 0,
             data['last_updated_time']);
         return ret;
+      } else {
+        return null;
       }
     } catch (e) {
       log(e.toString());
@@ -98,6 +100,8 @@ class QueryAPI {
             .first['financial_entity']['common_entity_data']['name']
             .toString();
         return ret;
+      } else {
+        return null;
       }
     } catch (e) {
       log(e.toString());

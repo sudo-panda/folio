@@ -1,12 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:folio/database/database_helper.dart';
-import 'package:folio/models/stocks/stock.dart';
 import 'package:folio/models/stocks/stock_data.dart';
-import 'package:folio/portfolio/database_access.dart';
-import 'package:folio/settings/settings.dart';
-import 'package:folio/portfolio/portfolio_list.dart';
+import 'package:folio/views/portfolio/database_access.dart';
+import 'package:folio/views/settings/settings.dart';
+import 'package:folio/views/portfolio/portfolio_list.dart';
 
 class PortfolioScrollView extends StatefulWidget {
   @override

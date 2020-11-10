@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:folio/models/stocks/stock.dart';
-import 'package:folio/models/tradelog.dart';
+import 'package:folio/models/trades/trade_log.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter/foundation.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = new DatabaseHelper.internal();
@@ -73,6 +72,7 @@ class DatabaseHelper {
     io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "folio.db");
     databaseFactory.deleteDatabase(path);
+    _db = await initDb();
   }
 
   void deleteDatabase() async {
@@ -105,6 +105,12 @@ class DatabaseHelper {
     return await dbClient.query(table, where: where, whereArgs: whereArgs);
   }
 
+  Future<List<Map>> getOrderedQuery(
+      String table, String where, List<dynamic> whereArgs, String orderBy) async {
+    var dbClient = await db;
+    return await dbClient.query(table, where: where, whereArgs: whereArgs, orderBy: orderBy);
+  }
+
   Future<bool> updateAll(String table, Map<String, dynamic> tuple) async {
     var dbClient = await db;
     int res = await dbClient.update(table, tuple);
@@ -119,17 +125,6 @@ class DatabaseHelper {
       tuple,
       where: where,
       whereArgs: whereArgs,
-    );
-    return res > 0 ? true : false;
-  }
-
-  Future<bool> setPinStateStock(Stock stock, bool pin) async {
-    var dbClient = await db;
-    int res = await dbClient.update(
-      tablePortfolio,
-      {'pin': pin ? 1 : 0},
-      where: "$colCode = ? and $colExchange = ?",
-      whereArgs: [stock.code, stock.exchange],
     );
     return res > 0 ? true : false;
   }

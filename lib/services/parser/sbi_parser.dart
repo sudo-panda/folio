@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:folio/settings/import/parser/parser.dart';
-import 'package:folio/models/tradelog.dart';
+import 'package:folio/services/parser/parser.dart';
+import 'package:folio/models/trades/trade_log.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 
@@ -60,16 +60,16 @@ class SBIParser extends Parser {
                 parse(parse(cell.innerHtml).body.text).documentElement.text;
             break;
           case "Buy Qty":
-            buyQty += int.parse(cell.innerHtml);
+            buyQty = int.parse(cell.innerHtml);
             break;
           case "Sold Qty":
-            sellQty -= int.parse(cell.innerHtml);
+            sellQty = int.parse(cell.innerHtml);
             break;
           case "Buy Rate":
-            buyRate += double.parse(cell.innerHtml);
+            buyRate = double.parse(cell.innerHtml);
             break;
           case "Sold Rate":
-            sellRate += double.parse(cell.innerHtml);
+            sellRate = double.parse(cell.innerHtml);
             break;
           default:
             break;
