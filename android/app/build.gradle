@@ -26,6 +26,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+def keyJKSFile = rootProject.file(keystoreProperties['storeFile'])
+
 android {
     compileSdkVersion 28
 
@@ -48,10 +55,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias "$System.env.KEY_ALIAS"
-            keyPassword "$System.env.KEY_PASSWORD"
-            storeFile file("../key.jks")
-            storePassword "$System.env.STORE_PASSWORD"
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keyJKSFile
+            storePassword keystoreProperties['storePassword']
         }
     }
 
