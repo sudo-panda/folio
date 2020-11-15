@@ -20,9 +20,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-      - run: echo $KEY_JKS > android/key.jks
-      - run: pwd
-      - run: ls android
+      - run: echo $KEY_JKS > android/file.jks
       - run: flutter pub get
       - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v2
