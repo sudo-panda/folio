@@ -21,6 +21,8 @@ class DatabaseHelper {
   static String colKey = 'key';
   static String colQty = 'qty';
   static String colRate = 'rate';
+  static String colMinSellRate = 'min_sell_rate';
+  static String colEstSellRate = 'est_sell_rate';
   static String colPinned = 'pinned';
   static String colBought = 'bought';
   static String colDate = 'date';
@@ -34,10 +36,14 @@ class DatabaseHelper {
   DatabaseHelper.internal();
 
   initDb() async {
-    io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, "folio.db");
+    String path = await getDbPath();
     var theDb = await openDatabase(path, version: 1, onCreate: _onCreate);
     return theDb;
+  }
+
+  Future<String> getDbPath() async {
+    io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    return join(documentsDirectory.path, "folio.db");
   }
 
   void _onCreate(Database db, int version) async {
@@ -47,7 +53,8 @@ class DatabaseHelper {
         '$colName TEXT,'
         '$colKey TEXT,'
         '$colQty INTEGER,'
-        '$colRate REAL,'
+        '$colMinSellRate REAL,'
+        '$colEstSellRate REAL,'
         '$colPinned INTEGER,'
         'PRIMARY KEY ($colCode, $colExchange)'
         ')');
@@ -60,23 +67,18 @@ class DatabaseHelper {
         '$colRate REAL,'
         'PRIMARY KEY ($colDate, $colCode, $colExchange, $colBought, $colQty, $colRate)'
         ')');
-    // await db.execute('CREATE TABLE IndexAPI ('
-    //     'code TEXT,'
-    //     'exchange TEXT,'
-    //     'key TEXT,'
-    //     'PRIMARY KEY (code, exchange)'
-    //     ')');
   }
 
-  void _deleteDb() async {
+  void deleteDb() async {
     io.Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "folio.db");
     databaseFactory.deleteDatabase(path);
-    _db = await initDb();
+    _db = null;
   }
 
-  void deleteDatabase() async {
-    _deleteDb();
+  void deleteDbThenInit() async {
+    deleteDb();
+    _db = await initDb();
   }
 
   Future<int> saveTuple(String table, Map<String, dynamic> tuple) async {
@@ -85,7 +87,7 @@ class DatabaseHelper {
     return res;
   }
 
-  Future<int> getCount(String table) async {
+  Future<int> getTotalCount(String table) async {
     var dbClient = await db;
     int count = Sqflite.firstIntValue(
         await dbClient.rawQuery('SELECT COUNT(*) FROM $table'));
@@ -105,10 +107,29 @@ class DatabaseHelper {
     return await dbClient.query(table, where: where, whereArgs: whereArgs);
   }
 
-  Future<List<Map>> getOrderedQuery(
-      String table, String where, List<dynamic> whereArgs, String orderBy) async {
+  Future<int> getQueryCount(
+      String table, String where, List<dynamic> whereArgs) async {
     var dbClient = await db;
-    return await dbClient.query(table, where: where, whereArgs: whereArgs, orderBy: orderBy);
+    return (await dbClient.query(table, where: where, whereArgs: whereArgs))
+        .length;
+  }
+
+  Future<List<Map>> getLimitedOrdered(String table, int limit, String orderBy) async {
+    var dbClient = await db;
+    return await dbClient.query(table, limit: limit, orderBy: orderBy);
+  }
+
+  Future<List<Map>> getOrderedQuery(String table, String where,
+      List<dynamic> whereArgs, String orderBy) async {
+    var dbClient = await db;
+    return await dbClient.query(table,
+        where: where, whereArgs: whereArgs, orderBy: orderBy);
+  }
+
+  Future<bool> insert(String table, Map<String, dynamic> tuple) async {
+    var dbClient = await db;
+    int res = await dbClient.insert(table, tuple);
+    return res > 0 ? true : false;
   }
 
   Future<bool> updateAll(String table, Map<String, dynamic> tuple) async {
@@ -131,53 +152,59 @@ class DatabaseHelper {
 
   Future updateFromTradeLogs(List<TradeLog> tradeLogs) async {
     var dbClient = await db;
-    var doneTransaction = await dbClient.transaction((txn) async {
-      int i = 0;
-      for (var tradeLog in tradeLogs) {
-        print(i++);
-        try {
-          await txn.insert(tableTradeLog, tradeLog.toTradeLogTuple());
-        } on DatabaseException catch (e) {
-          if (e.isUniqueConstraintError()) {
-            continue;
-          } else {
-            throw e;
+
+    List<Map<String, String>> recalc = [];
+
+    var doneTransaction = await dbClient.transaction(
+      (txn) async {
+        int i = 0;
+        for (var tradeLog in tradeLogs) {
+          print(++i);
+          try {
+            await txn.insert(tableTradeLog, tradeLog.toTradeLogTuple());
+          } on DatabaseException catch (e) {
+            if (e.isUniqueConstraintError()) {
+              continue;
+            } else {
+              throw e;
+            }
+          }
+
+          bool toAdd = true;
+
+          for (var element in recalc) {
+            if (element["code"] == tradeLog.code &&
+                element["exchange"] == tradeLog.exchange) {
+              toAdd = false;
+              break;
+            }
+          }
+
+          if (toAdd) {
+            recalc.add({"code": tradeLog.code, "exchange": tradeLog.exchange});
           }
         }
+      },
+    );
 
-        try {
-          await txn.insert(tablePortfolio, {
-            '$colExchange': tradeLog.exchange,
-            '$colCode': tradeLog.code,
-            '$colQty': tradeLog.qty,
-            '$colRate': tradeLog.rate,
-            '$colPinned': 0,
-          });
-        } on DatabaseException catch (e) {
+    for (var element in recalc) {
+      List<Map> queryResult = await dbClient.query(tablePortfolio,
+          where: "$colCode = ? and $colExchange = ?",
+          whereArgs: [element["code"], element["exchange"]]);
 
-          if (e.isUniqueConstraintError()) {
+      Stock stock;
 
-            List<Map> queryResult = await txn.query(tablePortfolio,
-                where: "$colCode = ? and $colExchange = ?",
-                whereArgs: [tradeLog.code, tradeLog.exchange]);
-
-            Stock stock = Stock.fromPortfolioTuple(queryResult.first);
-
-            stock.trade = tradeLog;
-
-            await txn.update(
-              tablePortfolio,
-              stock.toPortfolioTuple(),
-              where: "$colCode = ? and $colExchange = ?",
-              whereArgs: [stock.code, stock.exchange],
-            );
-
-          } else {
-            throw e;
-          }
-        }
+      if (queryResult.isEmpty) {
+        stock = Stock(element["code"], element["exchange"]);
+      } else {
+        stock = Stock.fromPortfolioTuple(queryResult.first);
       }
-    });
+
+      print(
+          element["code"] + ":" + (await stock.calculateFigures()).toString());
+    }
+
+    print(await getTotalCount(tablePortfolio));
 
     return doneTransaction;
   }

@@ -5,7 +5,7 @@ class DatabaseAccess {
   static DatabaseHelper db = DatabaseHelper();
 
   static Future<List<TradeLog>> getBuyLogs(String code, String exchange) async {
-    List<Map> tuples = await DatabaseHelper().getOrderedQuery(
+    List<Map> tuples = await db.getOrderedQuery(
       DatabaseHelper.tableTradeLog,
       '${DatabaseHelper.colBought} = ? and ${DatabaseHelper.colCode} = ? and ${DatabaseHelper.colExchange} = ?',
       [1, code, exchange],
@@ -21,7 +21,7 @@ class DatabaseAccess {
 
   static Future<List<TradeLog>> getSellLogs(
       String code, String exchange) async {
-    List<Map> tuples = await DatabaseHelper().getOrderedQuery(
+    List<Map> tuples = await db.getOrderedQuery(
       DatabaseHelper.tableTradeLog,
       '${DatabaseHelper.colBought} = ? and ${DatabaseHelper.colCode} = ? and ${DatabaseHelper.colExchange} = ?',
       [0, code, exchange],

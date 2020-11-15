@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:folio/models/trades/trade_cycle.dart';
 import 'package:folio/models/trades/trade_log.dart';
@@ -13,6 +11,23 @@ class TradeSummary {
   Future<List<TradeLog>> _sellLogsFuture;
 
   TradeSummary(this._buyLogsFuture, this._sellLogsFuture) : incorrect = false;
+
+  TradeCycle computeCycle(int sellQty, double sellRate) {
+    int b = 0;
+    var cycle = TradeCycle(DateTime.now(), sellQty, sellRate);
+
+    while (cycle.netQty < 0) {
+      if (b >= portfolio.length) {
+        return null;
+      }
+      var remaining = cycle.addBuyLog(portfolio[b].qty, portfolio[b].rate);
+      if (remaining == 0) {
+        b++;
+      }
+    }
+
+    return cycle;
+  }
 
   Future<TradeSummary> calculateSummary(int ordering) {
     switch (ordering) {
@@ -42,7 +57,8 @@ class TradeSummary {
 
     while (s < sellLogs.length && b < buyLogs.length) {
       if (sellLogs[s].date.isAfter(buyLogs[b].date)) {
-        var cycle = TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
+        var cycle =
+            TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
         while (cycle.netQty < 0 && pq.isNotEmpty) {
           var buyLog = pq.removeFirst();
           var remaining = cycle.addBuyLog(buyLog.qty, buyLog.rate);
@@ -67,7 +83,8 @@ class TradeSummary {
       }
     }
     while (s < sellLogs.length) {
-      var cycle = TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
+      var cycle =
+          TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
       while (cycle.netQty < 0 && pq.isNotEmpty) {
         var buyLog = pq.removeFirst();
         var remaining = cycle.addBuyLog(buyLog.qty, buyLog.rate);
@@ -101,6 +118,35 @@ class TradeSummary {
   }
 
   Future<TradeSummary> _oldestFirst() async {
+    var buyLogs = await _buyLogsFuture;
+    var sellLogs = await _sellLogsFuture;
+
+    portfolio = [];
+    cycles = [];
+
+    int b = 0, s = 0;
+    while (s < sellLogs.length) {
+      var cycle =
+          TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
+      while (cycle.netQty < 0) {
+        if (b >= buyLogs.length) {
+          incorrect = true;
+          return this;
+        }
+        var remaining = cycle.addBuyLog(buyLogs[b].qty, buyLogs[b].rate);
+        if (remaining != 0) {
+          buyLogs[b].qty = remaining;
+        } else {
+          buyLogs[b].qty = 0;
+          b++;
+        }
+      }
+      cycles.add(cycle);
+      s++;
+    }
+
+    portfolio = buyLogs.sublist(b);
+
     return this;
   }
 }

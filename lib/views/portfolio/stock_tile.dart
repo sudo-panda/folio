@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:folio/assets/folio_icons.dart';
 import 'package:folio/contracts/stock_tile_contract.dart';
 import 'package:folio/views/portfolio/database_access.dart';
+import 'package:folio/views/portfolio/info_widgets.dart';
 import 'package:folio/views/portfolio/trades/trades.dart';
 import 'package:folio/models/stocks/current_stock_data.dart';
 import 'package:folio/models/stocks/stock_data.dart';
@@ -63,9 +64,16 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
               child: InkWell(
                 splashColor: Colors.blue.withAlpha(30),
                 onTap: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
+                  if (!_isExpanded) {
+                    setState(() {
+                      _isExpanded = true;
+                    });
+                  } else {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return TradesRoute(_stockData);
+                    }));
+                  }
                 },
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
@@ -102,9 +110,10 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
         children: [
           Expanded(
             child: Align(
-                alignment: Alignment.center,
-                child:
-                    Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
                   Text(
                     _stockData?.lastValue?.toStringAsFixed(2) ?? "—",
                     style:
@@ -135,21 +144,34 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
                       ),
                     ],
                   )
-                ])),
+                ],
+              ),
+            ),
           ),
           Expanded(
             child: Align(
               alignment: Alignment.center,
-              child: Text(
-                _stockData?.netAmount?.toStringAsFixed(2) ?? "—",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                    color: _stockData.netSign == 1
-                        ? Colors.green
-                        : _stockData.netSign == -1
-                            ? Colors.red
-                            : Theme.of(context).accentColor),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    _stockData?.netPerStock?.toStringAsFixed(2) ?? "—",
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.normal,
+                        color: _stockData.netSign == 1
+                            ? Colors.green
+                            : _stockData.netSign == -1
+                                ? Colors.red
+                                : Theme.of(context).accentColor),
+                  ),
+                  Text(
+                    _stockData.percentNet != null
+                        ? "${_stockData.percentNet}%"
+                        : "/",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
           ),
@@ -248,19 +270,83 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
           heading: "Owned",
           info: [
             InfoRow(
-                field: "Quantity", value: _stockData.qty?.toString() ?? "—"),
+              title: "Quantity",
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+                margin: EdgeInsets.symmetric(vertical: 2),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                child: Text(
+                  _stockData.qty?.toString() ?? "—",
+                ),
+              ),
+            ),
             InfoRow(
-                field: "Rate",
-                value: _stockData.rate?.toStringAsFixed(2) ?? "—"),
+              title: "Min Sell Rate",
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10))),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                child: Text(
+                  _stockData.msr?.toStringAsFixed(2) ?? "—",
+                  style: TextStyle(
+                    color: _stockData?.lastValue == null ||
+                            _stockData?.msr == null ||
+                            _stockData?.msr == _stockData?.lastValue
+                        ? Theme.of(context).accentColor
+                        : _stockData.lastValue > _stockData.msr
+                            ? Colors.green
+                            : Colors.red,
+                    fontWeight: _stockData?.msr == null ? FontWeight.normal : FontWeight.w300,
+                  ),
+                ),
+              ),
+            ),
             InfoRow(
-                field: "Net / Stock",
-                value: _stockData.netPerStock != null
-                    ? _stockData.netSign == 1
-                        ? '+${_stockData.netPerStock.toStringAsFixed(2)}'
-                        : _stockData.netSign == -1
-                            ? '-${_stockData.netPerStock.toStringAsFixed(2)}'
-                            : '${_stockData.netPerStock.toStringAsFixed(2)}'
+              title: "Estimated Sell Rate",
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  border: Border.all(
+                                color: _stockData?.esr == null
+                                    ? Colors.transparent
+                                    : Theme.of(context).accentColor),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                child: Text(
+                  _stockData.esr?.toStringAsFixed(2) ?? "—",
+                  style: TextStyle(
+                    color: _stockData?.lastValue == null ||
+                            _stockData?.esr == null ||
+                            _stockData?.esr == _stockData?.lastValue
+                        ? Theme.of(context).accentColor
+                        : _stockData.lastValue > _stockData.esr
+                            ? Colors.green
+                            : Colors.red,
+                    fontWeight: _stockData?.esr == null ? FontWeight.normal : FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            InfoRow(
+              title: "Overall Net",
+              child: Container(
+                margin: EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: (_stockData?.netSign ?? 0) == 0
+                        ? Colors.transparent
+                        : _stockData?.netSign == 1
+                            ? Colors.green
+                            : Colors.red),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                child: Text(_stockData.netAmount != null
+                    ? _stockData.netAmount.toStringAsFixed(2)
                     : "—"),
+              ),
+            ),
           ],
         ),
       ),
@@ -275,15 +361,15 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
               width: 50.0,
               child: IconButton(
                 padding: EdgeInsets.all(0.0),
-                icon: Icon(Icons.backup_table_rounded),
+                icon: Icon(Icons.compress),
                 iconSize: 25.0,
                 splashRadius: 25.0,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return TradesRoute(_stockData);
-                  }));
+                  setState(() {
+                    _isExpanded = false;
+                  });
                 },
-                tooltip: "Open Database",
+                tooltip: "Collapse",
               ),
             ),
             SizedBox(
@@ -366,96 +452,7 @@ class _StockTileState extends State<StockTile> implements StockTileContract {
   void currentStockDataUpdate(CurrentStockData newData) {
     setState(() {
       _stockData.current = newData;
-      _stockData.calculateNet();
       _isRefreshing = false;
     });
-  }
-}
-
-class InfoGroup extends StatelessWidget {
-  const InfoGroup({
-    Key key,
-    @required String heading,
-    @required List<Widget> info,
-  })  : _heading = heading,
-        _info = info,
-        super(key: key);
-
-  final String _heading;
-  final List<Widget> _info;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                _heading,
-                style: TextStyle(
-                  fontFamily: 'CarroisGothic',
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18.0,
-                ),
-              ),
-            ),
-          ] +
-          _info,
-    );
-  }
-}
-
-class InfoRow extends StatelessWidget {
-  const InfoRow({
-    Key key,
-    @required String field,
-    @required String value,
-  })  : _field = field,
-        _value = value,
-        super(key: key);
-
-  final String _field;
-  final String _value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              _field,
-              style: TextStyle(
-                fontWeight: FontWeight.w300,
-                fontSize: 15.0,
-              ),
-            ),
-          ),
-        ),
-        Text(
-          "  :  ",
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 15.0,
-          ),
-        ),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              _value,
-              style: TextStyle(
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ),
-        )
-      ],
-    );
   }
 }

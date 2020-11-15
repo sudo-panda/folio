@@ -48,7 +48,13 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
                   return SettingsRoute();
-                }));
+                })).then((value) {
+                  setState(() {
+                    _pinnedStockFuture = DatabaseAccess.getPinnedStockData();
+                    _unpinnedStockFuture =
+                        DatabaseAccess.getUnpinnedStockData();
+                  });
+                });
               },
             ),
           ],

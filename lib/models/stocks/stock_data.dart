@@ -1,28 +1,22 @@
 import 'package:folio/models/stocks/current_stock_data.dart';
-import 'package:folio/models/stocks/net.dart';
 import 'package:folio/models/stocks/stock.dart';
 
 class StockData {
   Stock _stock;
   CurrentStockData _current;
-  Net _net;
 
   static Duration interval = Duration(seconds: 15);
-
-  static final double brokerage = 0;
 
   StockData(Stock stock)
       : _stock = stock,
         assert(stock != null) {
     _current = new CurrentStockData();
-    _net = new Net();
   }
 
   StockData.fromPortfolioTuple(Map<String, dynamic> tuple)
       : assert(tuple != null),
         _stock = Stock.fromPortfolioTuple(tuple) {
     _current = new CurrentStockData();
-    _net = new Net();
   }
 
   String get name => _stock?.name;
@@ -35,11 +29,15 @@ class StockData {
 
   int get qty => _stock?.qty;
 
+  double get brokerage => _stock?.brokerage;
+
   set qty(int qty) {
     _stock.qty = qty;
   }
 
-  double get rate => _stock?.rate;
+  double get msr => _stock?.minSellRate;
+
+  double get esr => _stock?.estSellRate;
 
   double get lastValue => _current?.value;
 
@@ -51,11 +49,19 @@ class StockData {
 
   int get changeSign => _current?.sign ?? 0;
 
-  double get netAmount => _net?.amount;
+  double get netAmount => netPerStock == null || qty == null || qty == 0
+      ? null
+      : (netPerStock * qty).abs();
 
-  double get netPerStock => _net?.amountPerStock;
+  double get netPerStock => lastValue == null || msr == null
+      ? null
+      : ((lastValue - msr) * (1 - brokerage)).abs();
 
-  int get netSign => _net?.sign ?? 0;
+  String get percentNet => msr == null || msr == 0 || netPerStock == null
+      ? null
+      : (netPerStock / msr).toStringAsFixed(2);
+
+  int get netSign => netPerStock?.sign?.round() ?? 0;
 
   set name(String name) {
     _stock.name = name;
@@ -68,27 +74,5 @@ class StockData {
     _current.sign = currentData?.sign ?? 0;
     _current.updated = currentData?.updated;
     _current.value = currentData?.value;
-  }
-
-  set net(Net net) {
-    _net.amount = net.amount;
-    _net.amountPerStock = net.amountPerStock;
-    _net.sign = net.sign;
-  }
-
-  void calculateNet() {
-    if (_stock?.qty == null || _current?.value == null) {
-      return;
-    }
-    if (_stock?.qty <= 0) {
-      _net.amountPerStock = null;
-      _net.amount = null;
-      _net.sign = 0;
-      return;
-    }
-    _net.amountPerStock = ((_current.value - _stock.rate) * (1 - brokerage));
-    _net.amount = (_net.amountPerStock * _stock.qty).abs();
-    _net.sign = (_net.amountPerStock.sign).round();
-    _net.amountPerStock = _net.amountPerStock.abs();
   }
 }

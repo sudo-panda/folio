@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui';
 import 'dart:io';
 
@@ -8,6 +7,7 @@ import 'package:folio/database/database_helper.dart';
 import 'package:folio/models/trades/trade_log.dart';
 
 import 'package:folio/services/parser/sbi_parser.dart';
+import 'package:folio/views/settings/import/database_access.dart';
 import 'package:folio/views/settings/import/table.dart';
 
 class ImportRoute extends StatelessWidget {
@@ -62,80 +62,135 @@ class _ImportAreaState extends State<ImportArea> {
     return Container(
       child: Column(
         mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: _hasImported ? acceptPrompt() : importPrompt(),
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          FutureBuilder(
+            future: DatabaseAccess.getRecentDate(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                return Container(
+                  height: 60,
+                  width: 340,
+                  margin: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                    color: Color(0xAAF0B450),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded),
+                      Expanded(
+                        child: Text(
+                          "Most recent entry is on: "
+                          "${snapshot.data.day.toString()}-"
+                          "${snapshot.data.month.toString()}-"
+                          "${snapshot.data.year.toString()}",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return Container(
+                  height: 100,
+                  margin: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10),
+                  child: Center(
+                    child: Text(
+                      "",
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+          Expanded(
+            child: _hasImported ? acceptPrompt() : importPrompt(),
+          ),
+        ],
       ),
     );
   }
 
-  List<Widget> importPrompt() {
-    return [
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: 30,
-            child: Text("Choose File"),
-          ),
-        ],
-      ),
-      Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          RaisedButton(
-            child: _isButtonEnabled
-                ? Text("Browse")
-                : SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1,
-                    )),
-            onPressed: _isButtonEnabled ? importTrades : null,
-          )
-        ],
-      )
-    ];
+  Widget importPrompt() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                "Choose File",
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RaisedButton(
+              child: _isButtonEnabled
+                  ? Text("Browse")
+                  : SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1,
+                      )),
+              onPressed: _isButtonEnabled ? importTrades : null,
+            )
+          ],
+        )
+      ],
+    );
   }
 
-  List<Widget> acceptPrompt() {
-    return [
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          TradeTable(_list),
-          Text("Total trades: ${_list.length}"),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                RaisedButton(
-                  child: _isButtonEnabled
-                      ? Text("Accept")
-                      : SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1,
-                          ),
+  Widget acceptPrompt() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        TradeTable(_list),
+        Text("Total trades: ${_list.length}"),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              RaisedButton(
+                child: _isButtonEnabled
+                    ? Text("Accept")
+                    : SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1,
                         ),
-                  onPressed: _isButtonEnabled ? acceptTrades : null,
-                ),
-                RaisedButton(
-                  child: Text("Cancel"),
-                  onPressed: _isButtonEnabled ? rejectTrades : null,
-                )
-              ],
-            ),
-          )
-        ],
-      )
-    ];
+                      ),
+                onPressed: _isButtonEnabled ? acceptTrades : null,
+              ),
+              RaisedButton(
+                child: Text("Cancel"),
+                onPressed: _isButtonEnabled ? rejectTrades : null,
+              )
+            ],
+          ),
+        )
+      ],
+    );
   }
 
   void importTrades() async {
@@ -149,11 +204,6 @@ class _ImportAreaState extends State<ImportArea> {
     if (result != null) {
       String filePath = result.files.first.path;
       String file = File(filePath).readAsStringSync();
-      var list = SBIParser(file).statementsList;
-
-      list.forEach((element) {
-        log(element.toString());
-      });
 
       setState(() {
         _list = SBIParser(file).statementsList;

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "264011798558",
+    "firebase_url": "https://folio-sudo-panda.firebaseio.com",
+    "project_id": "folio-sudo-panda",
+    "storage_bucket": "folio-sudo-panda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264011798558:android:e1c3d89cd361c052cc360f",
+        "android_client_info": {
+          "package_name": "com.sudopanda.folio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "264011798558-kq23k4d3pnqaeudbugvr1it2qpq01ns8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sudopanda.folio",
+            "certificate_hash": "e10e2da815c1df85eb29fdc0b4f4ea14d96fe6b4"
+          }
+        },
+        {
+          "client_id": "264011798558-96tsuupv24u4pu70o12qb74iu7r8ujlv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEE9PXf00HMlAsa8JRb7RIGuNVc_13m6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "264011798558-oh5jvqtgib1kb9nblfr7f98155j5r452.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

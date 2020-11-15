@@ -1,4 +1,3 @@
-import 'package:flutter/semantics.dart';
 import 'package:folio/models/trades/invoice.dart';
 
 class TradeCycle {
@@ -13,7 +12,7 @@ class TradeCycle {
   TradeCycle(this.date, this.sellQty, this.sellRate)
       : netQty = -sellQty,
         invoices = [],
-        _brokerage = 0;
+        _brokerage = 0.02;
 
   int addBuyLog(int qty, double rate) {
     if (qty < -this.netQty) {

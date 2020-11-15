@@ -5,17 +5,17 @@ class TradeLog {
   String _code;
   String _exchange;
   bool _bought;
-  int _qty;
+  int qty;
   double _rate;
 
-  TradeLog(this._datetime, this._code, this._exchange, this._bought, this._qty,
+  TradeLog(this._datetime, this._code, this._exchange, this._bought, this.qty,
       this._rate);
 
   TradeLog.fromTradeLogTuple(Map<String, dynamic> tuple)
       : _code = tuple['${DatabaseHelper.colCode}'],
         _exchange = tuple['${DatabaseHelper.colExchange}'],
         _bought = tuple['${DatabaseHelper.colBought}'] == 1 ? true : false,
-        _qty = tuple['${DatabaseHelper.colQty}'],
+        qty = tuple['${DatabaseHelper.colQty}'],
         _rate = tuple['${DatabaseHelper.colRate}'],
         _datetime = DateTime.utc(
             int.parse(tuple['${DatabaseHelper.colDate}']
@@ -34,8 +34,6 @@ class TradeLog {
 
   bool get bought => _bought;
 
-  int get qty => _qty;
-
   double get rate => _rate;
 
   Map<String, dynamic> toTradeLogTuple() {
@@ -48,7 +46,7 @@ class TradeLog {
       '${DatabaseHelper.colCode}': _code,
       '${DatabaseHelper.colExchange}': _exchange,
       '${DatabaseHelper.colBought}': _bought ? 1 : 0,
-      '${DatabaseHelper.colQty}': _qty,
+      '${DatabaseHelper.colQty}': qty,
       '${DatabaseHelper.colRate}': _rate,
     };
   }

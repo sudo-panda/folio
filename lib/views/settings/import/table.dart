@@ -55,7 +55,7 @@ class TradeTable extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w100,
-                    fontSize: 16,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -64,6 +64,10 @@ class TradeTable extends StatelessWidget {
                 child: Text(
                   log.exchange,
                   textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
                 ),
               ),
               SizedBox(
