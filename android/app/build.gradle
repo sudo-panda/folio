@@ -50,7 +50,7 @@ android {
         release {
             keyAlias "$System.env.KEY_ALIAS"
             keyPassword "$System.env.KEY_PASSWORD"
-            storeFile file("../file.jks")
+            storeFile file("../key.jks")
             storePassword "$System.env.STORE_PASSWORD"
         }
     }
