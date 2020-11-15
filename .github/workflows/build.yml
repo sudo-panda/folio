@@ -18,8 +18,8 @@ jobs:
         env:
           KEY_JKS: ${{ secrets.KEY_JKS }}
           KEY_PROP: ${{ secrets.KEY_PROP }}
-      - run: echo $KEY_JKS > key.jks 
-      - run: echo $KEY_PROP > key.properties
+      - run: echo $KEY_JKS > android/key.jks 
+      - run: echo $KEY_PROP > android/key.properties
       - run: flutter pub get
       - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v2
