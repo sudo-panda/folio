@@ -32,6 +32,9 @@ def keyJKSFile = rootProject.file('key.jks')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
+def keyAliasValue = keystoreProperties['keyAlias'];
+def keyPasswordValue = keystoreProperties['keyPassword']
+def storePasswordValue = keystoreProperties['storePassword']
 
 android {
     compileSdkVersion 28
@@ -55,10 +58,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
+            keyAlias keyAliasValue
+            keyPassword keyPasswordValue
             storeFile keyJKSFile
-            storePassword keystoreProperties['storePassword']
+            storePassword storePasswordValue
         }
     }
 
