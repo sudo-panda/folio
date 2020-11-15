@@ -15,7 +15,7 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'beta'
-      - run: if [[ -z $KEY_JKS ]]; then exit 1; else echo $KEY_JKS | base64 -d > android/key.jks; fi
+      - run: if [[ -z $KEY_JKS ]]; then exit 1; else echo $KEY_JKS | base64 -di > android/key.jks; fi
         env:
           KEY_JKS: ${{ secrets.KEY_JKS }}
       - run: flutter pub get
