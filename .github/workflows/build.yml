@@ -20,7 +20,7 @@ jobs:
           KEY_PROP: ${{ secrets.KEY_PROP }}
       - run: echo $KEY_JKS > android/key.jks 
       - run: echo $KEY_PROP > android/key.properties
-      - run: find . -type d -print
+      - run: ls android
       - run: flutter pub get
       - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v2
