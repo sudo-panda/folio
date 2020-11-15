@@ -30,6 +30,11 @@ def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else {
+    keystoreProperties.setProperty('storePassword', System.getenv('STORE_PASSWORD'));
+    keystoreProperties.setProperty('keyPassword', System.getenv('KEY_PASSWORD'));
+    keystoreProperties.setProperty('keyAlias', System.getenv('KEY_ALIAS'));
+    keystoreProperties.setProperty('storeFile', System.getenv('KEY_PATH'));
 }
 
 android {
@@ -56,7 +61,7 @@ android {
         release {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
-            storeFile file('../key.jks')
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
             storePassword keystoreProperties['storePassword']
         }
     }
