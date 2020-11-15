@@ -15,14 +15,15 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'beta'
+      - run: if [[ -z $KEY_JKS ]]; then exit 1; else echo $KEY_JKS | base64 -d > android/key.jks; fi
         env:
           KEY_JKS: ${{ secrets.KEY_JKS }}
+      - run: flutter pub get
+      - run: flutter build apk --release --split-per-abi
+        env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-      - run: if [[ -z $KEY_JKS ]]; then exit 1; else echo $KEY_JKS | base64 -d > android/key.jks; fi
-      - run: flutter pub get
-      - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v2
         with:
           name: release-x86_64
