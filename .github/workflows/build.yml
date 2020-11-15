@@ -2,26 +2,29 @@ name: CI
 
 on: 
   push:
-    tags-ignore:
-      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: subosito/flutter-action@v1.4.0
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
-      - uses: subosito/flutter-action@v1.4.1
+      - uses: subosito/flutter-action@v1
         with:
           channel: 'beta'
+      - run: echo $KEY_JKS | base64 -di > android/key.jks
         env:
           KEY_JKS: ${{ secrets.KEY_JKS }}
-          KEY_PROP: ${{ secrets.KEY_PROP }}
-          run: echo $KEY_JKS > key.jks && echo $KEY_PROP > key.properties && flutter pub get && flutter test && flutter build apk --release
+      - run: flutter pub get
+      - run: flutter build apk --release --split-per-abi
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PATH: ../key.jks
       - uses: actions/upload-artifact@v2
         with:
           name: release-x86_64
