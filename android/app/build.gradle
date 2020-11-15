@@ -58,10 +58,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias keyAliasValue
-            keyPassword keyPasswordValue
+            keyAlias "$System.env.KEY_ALIAS"
+            keyPassword "$System.env.KEY_PASSWORD"
             storeFile keyJKSFile
-            storePassword storePasswordValue
+            storePassword "$System.env.STORE_PASSWORD"
         }
     }
 
