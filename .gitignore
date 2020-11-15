@@ -45,4 +45,3 @@ app.*.map.json
 
 # Key related
 android/*.jks
-setup.sh
