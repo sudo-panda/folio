@@ -55,5 +55,5 @@ jobs:
           draft: false
           prerelease: false
       - name: Download APKs
-        - uses: actions/download-artifact@v2
-        - run: ls -R
+        uses: actions/download-artifact@v2
+        run: ls -R
