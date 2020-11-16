@@ -69,9 +69,7 @@ class _ImportAreaState extends State<ImportArea> {
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return Container(
-                  height: 60,
-                  width: 340,
-                  margin: EdgeInsets.all(10),
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(
