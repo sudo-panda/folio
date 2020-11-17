@@ -137,7 +137,9 @@ class _PortfolioScrollViewState extends State<PortfolioScrollView> {
               );
             } else {
               return SliverList(
-                delegate: SliverChildListDelegate([]),
+                delegate: SliverChildListDelegate([
+                  SizedBox(height: 20,)
+                ]),
               );
             }
           },
