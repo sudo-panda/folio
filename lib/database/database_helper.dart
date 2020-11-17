@@ -114,7 +114,8 @@ class DatabaseHelper {
         .length;
   }
 
-  Future<List<Map>> getLimitedOrdered(String table, int limit, String orderBy) async {
+  Future<List<Map>> getLimitedOrdered(
+      String table, int limit, String orderBy) async {
     var dbClient = await db;
     return await dbClient.query(table, limit: limit, orderBy: orderBy);
   }
@@ -124,6 +125,13 @@ class DatabaseHelper {
     var dbClient = await db;
     return await dbClient.query(table,
         where: where, whereArgs: whereArgs, orderBy: orderBy);
+  }
+
+  Future<bool> deleteQuery(
+      String table, String where, List<dynamic> whereArgs) async {
+    var dbClient = await db;
+    int res = await dbClient.delete(table, where: where, whereArgs: whereArgs);
+    return res > 0 ? true : false;
   }
 
   Future<bool> insert(String table, Map<String, dynamic> tuple) async {
