@@ -56,7 +56,7 @@ class TradeSummary {
     int b = 0, s = 0;
 
     while (s < sellLogs.length && b < buyLogs.length) {
-      if (sellLogs[s].date.isAfter(buyLogs[b].date)) {
+      if (sellLogs[s].date.isBefore(buyLogs[b].date)) {
         var cycle =
             TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
         while (cycle.netQty < 0 && pq.isNotEmpty) {
@@ -72,7 +72,8 @@ class TradeSummary {
               buyLog.rate,
             ));
         }
-        if (pq.isEmpty) {
+        print(cycle.netQty);
+        if (pq.isEmpty && cycle.netQty < 0) {
           incorrect = true;
           return this;
         }
@@ -82,6 +83,7 @@ class TradeSummary {
         pq.add(buyLogs[b++]);
       }
     }
+    
     while (s < sellLogs.length) {
       var cycle =
           TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
@@ -98,7 +100,7 @@ class TradeSummary {
             buyLog.rate,
           ));
       }
-      if (pq.isEmpty) {
+      if (pq.isEmpty && cycle.netQty < 0) {
         incorrect = true;
         return this;
       }
@@ -129,7 +131,7 @@ class TradeSummary {
       var cycle =
           TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
       while (cycle.netQty < 0) {
-        if (b >= buyLogs.length) {
+        if (b >= buyLogs.length || sellLogs[s].date.isBefore(buyLogs[b].date)) {
           incorrect = true;
           return this;
         }
