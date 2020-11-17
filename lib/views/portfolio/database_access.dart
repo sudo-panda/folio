@@ -5,10 +5,11 @@ class DatabaseAccess {
   static DatabaseHelper db = DatabaseHelper();
 
   static Future<List<StockData>> getPinnedStockData() async {
-    List<Map> tuples = await DatabaseHelper().getQuery(
+    List<Map> tuples = await DatabaseHelper().getOrderedQuery(
       DatabaseHelper.tablePortfolio,
       '${DatabaseHelper.colPinned} = ?',
       [1],
+      '${DatabaseHelper.colName} ASC, ${DatabaseHelper.colCode} ASC',
     );
 
     List<StockData> stocks = [];
@@ -17,10 +18,11 @@ class DatabaseAccess {
   }
 
   static Future<List<StockData>> getUnpinnedStockData() async {
-    List<Map> tuples = await DatabaseHelper().getQuery(
+    List<Map> tuples = await DatabaseHelper().getOrderedQuery(
       DatabaseHelper.tablePortfolio,
       '${DatabaseHelper.colPinned} = ?',
       [0],
+      '${DatabaseHelper.colName} ASC, ${DatabaseHelper.colCode} ASC',
     );
 
     List<StockData> stocks = [];
