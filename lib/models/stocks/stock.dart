@@ -86,6 +86,8 @@ class Stock {
       // Uncomment if you want overall profit to be greater than requiredProfit
       totalProfitDifference =
           totalProfitDifference > 0 ? 0 : totalProfitDifference;
+
+      s++;
     }
 
     qty = 0;
@@ -100,12 +102,17 @@ class Stock {
       qty += buyLogs[b].qty;
     }
 
-    var avgBuyCost = avgBuyRate + avgBuyRate * brokerage;
-    minSellRate = ((avgBuyCost * qty - totalNet) / qty) * (1 + brokerage);
+    if (qty != 0) {
+      var avgBuyCost = avgBuyRate + avgBuyRate * brokerage;
+      minSellRate = ((avgBuyCost * qty - totalNet) / qty) * (1 + brokerage);
 
-    var profitableSellRate = avgBuyCost + avgBuyCost * requiredProfit;
-    estSellRate = ((profitableSellRate * qty - totalProfitDifference) / qty) *
-        (1 + brokerage);
+      var profitableSellRate = avgBuyCost + avgBuyCost * requiredProfit;
+      estSellRate = ((profitableSellRate * qty - totalProfitDifference) / qty) *
+          (1 + brokerage);
+    } else {
+      minSellRate = null;
+      estSellRate = null;
+    }
 
     if (await DatabaseActions.setStockFigures(this)) {
       return true;
