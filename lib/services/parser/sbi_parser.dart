@@ -23,7 +23,7 @@ class SBIParser extends Parser {
         .querySelectorAll("th")) {
       headers.add(cell.innerHtml);
     }
-    log(headers.toString());
+    
     List<TradeLog> statements = [];
 
     for (var row in this

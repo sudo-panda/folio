@@ -39,9 +39,6 @@ class QueryAPI {
       );
 
       if (r.statusCode == 200) {
-        log(jsonDecode(r.data.substring(4))['PriceUpdate']['entities']
-            .first['financial_entity']['common_entity_data']['name']
-            .toString());
         var data = jsonDecode(r.data.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data'];
 
@@ -59,10 +56,14 @@ class QueryAPI {
             data['last_updated_time']);
         return ret;
       } else {
+        log("query_api.getCurrentData($code, $exchange, $key) => \n " +
+            r.statusCode.toString() +
+            ": " +
+            r.statusMessage);
         return null;
       }
     } catch (e) {
-      log(e.toString());
+      log("query_api.getCurrentData($code, $exchange, $key) => \n" + e.toString());
       return null;
     }
   }
@@ -101,10 +102,14 @@ class QueryAPI {
             .toString();
         return ret;
       } else {
+        log("query_api.getName($code, $exchange, $key) => \n " +
+            r.statusCode.toString() +
+            ": " +
+            r.statusMessage);
         return null;
       }
     } catch (e) {
-      log(e.toString());
+      log("query_api.getName($code, $exchange, $key) => \n" + e.toString());
       return null;
     }
   }

@@ -99,7 +99,7 @@ class QueryNSEAPI {
     try {
       await session.get(uri.toString(), headers);
     } catch (e) {
-      dev.log("NSE: Error getting cookies : " + e.toString());
+      dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
     }
 
     uri = Uri.https(
@@ -115,7 +115,7 @@ class QueryNSEAPI {
     try {
       r = await session.get(uri.toString(), headers);
     } catch (e) {
-      dev.log("getCurrentDataNSE => " + e.toString());
+      dev.log("query_nse_api.getCurrentData($code) try 1 => \n" + e.toString());
       return null;
     }
 
@@ -133,7 +133,7 @@ class QueryNSEAPI {
           data['metadata']['lastUpdateTime'].toString());
       return ret;
     } catch (e) {
-      print(e);
+      dev.log("query_nse_api.getCurrentData() try 2 => \n" + e.toString());
       return null;
     }
   }
@@ -151,7 +151,7 @@ class QueryNSEAPI {
     try {
       await session.get(uri.toString(), headers);
     } catch (e) {
-      dev.log("NSE: Error getting cookies : " + e.toString());
+      dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
     }
 
     uri = Uri.https(
@@ -167,7 +167,7 @@ class QueryNSEAPI {
     try {
       r = await session.get(uri.toString(), headers);
     } catch (e) {
-      dev.log("getCurrentDataNSE => " + e.toString());
+      dev.log("query_nse_api.getName($code) => try 1 \n" + e.toString());
       return null;
     }
     var data = jsonDecode(r);
@@ -175,7 +175,7 @@ class QueryNSEAPI {
       String ret = data['info']['companyName'].toString();
       return ret;
     } catch (e) {
-      print(e);
+      dev.log("query_nse_api.getName($code) => try 2 \n" + e.toString());
       return null;
     }
   }

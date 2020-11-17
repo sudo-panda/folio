@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 
@@ -274,18 +275,17 @@ class _DriveAreaState extends State<DriveArea> {
       final saveFile = File(await DatabaseHelper().getDbPath());
       List<int> dataStore = [];
       file.stream.listen((data) {
-        print("DataReceived: ${data.length}");
         dataStore.insertAll(dataStore.length, data);
       }, onDone: () async {
-        print("Task Done");
+        print("Download Done");
         saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
           print("Written to File");
         });
-      }, onError: (error) {
-        print("Error: ${error.toString()}");
+      }, onError: (e) {
+        log("drive.showRestoreDialog() => \n " + e.toString());
       });
     }
-    print("Restores");
+    
     setState(() {
       _isRestoring = false;
       _isProcessing = false;

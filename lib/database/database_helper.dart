@@ -167,7 +167,9 @@ class DatabaseHelper {
       (txn) async {
         int i = 0;
         for (var tradeLog in tradeLogs) {
-          print(++i);
+          if (++i % 10 == 0) {
+            print("Added " + i.toString() + " logs to DB");
+          }
           try {
             await txn.insert(tableTradeLog, tradeLog.toTradeLogTuple());
           } on DatabaseException catch (e) {
@@ -208,12 +210,10 @@ class DatabaseHelper {
         stock = Stock.fromPortfolioTuple(queryResult.first);
       }
 
-      print(
+      print("Recalculated " + element["exchange"] + "-" +
           element["code"] + ":" + (await stock.calculateFigures()).toString());
     }
-
-    print(await getTotalCount(tablePortfolio));
-
+    
     return doneTransaction;
   }
 }

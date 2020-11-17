@@ -46,11 +46,14 @@ class QueryBSEAPI {
             data['CurrDate']);
         return ret;
       } else {
-        log(r.statusCode.toString() + ": " + r.statusMessage);
+        log("query_bse_api.getCurrentData($code) => \n " +
+            r.statusCode.toString() +
+            ": " +
+            r.statusMessage);
         return null;
       }
     } catch (e) {
-      log(e.toString());
+      log("query_bse_api.getCurrentData($code) => \n " + e.toString());
       return null;
     }
   }
@@ -76,11 +79,14 @@ class QueryBSEAPI {
       if (r.statusCode == 200) {
         return jsonDecode(r.data)['Cmpname']['FullN'].toString();
       } else {
-        log(r.statusCode.toString() + ": " + r.statusMessage);
+        log("query_bse_api.getName($code) => \n " +
+            r.statusCode.toString() +
+            ": " +
+            r.statusMessage);
         return null;
       }
     } catch (e) {
-      log(e.toString());
+      log("query_bse_api.getName($code) => \n " + e.toString());
       return null;
     }
   }

@@ -72,7 +72,6 @@ class TradeSummary {
               buyLog.rate,
             ));
         }
-        print(cycle.netQty);
         if (pq.isEmpty && cycle.netQty < 0) {
           incorrect = true;
           return this;
