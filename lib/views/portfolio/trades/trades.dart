@@ -7,7 +7,7 @@ import 'package:folio/models/trades/trade_cycle.dart';
 import 'package:folio/models/trades/trade_log.dart';
 import 'package:folio/models/trades/trade_summary.dart';
 import 'package:folio/views/portfolio/info_widgets.dart';
-import 'package:folio/views/portfolio/trades/database_access.dart';
+import 'package:folio/views/portfolio/trades/database_actions.dart';
 import 'package:intl/intl.dart';
 
 class TradesRoute extends StatefulWidget {
@@ -28,16 +28,19 @@ class _TradesRouteState extends State<TradesRoute> {
   final _formKey = GlobalKey<FormState>();
   final _qtyController = TextEditingController();
   final _rateController = TextEditingController();
+  final _exchangeController = TextEditingController();
+  final _codeController = TextEditingController();
+  final _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _stockData = widget.stockData;
     _summary = TradeSummary(
-        DatabaseAccess.getBuyLogs(_stockData.code, _stockData.exchange),
-        DatabaseAccess.getSellLogs(_stockData.code, _stockData.exchange));
+        DatabaseActions.getBuyLogs(_stockData.code, _stockData.exchange),
+        DatabaseActions.getSellLogs(_stockData.code, _stockData.exchange));
     _ordering = 0;
-    _value = _stockData.lastValue;
+    _value = _stockData?.lastValue;
     _computedCycle = null;
   }
 
@@ -45,6 +48,9 @@ class _TradesRouteState extends State<TradesRoute> {
   void dispose() {
     _qtyController.dispose();
     _rateController.dispose();
+    _exchangeController.dispose();
+    _codeController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -54,6 +60,190 @@ class _TradesRouteState extends State<TradesRoute> {
       appBar: AppBar(
         centerTitle: true,
         title: Text("Details"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit_outlined),
+            tooltip: "Edit",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => Dialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Text(
+                              "Edit Details",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            )
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Text(
+                              "Empty fields remain unchanged",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                color: Theme.of(context).dividerColor,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Column(
+                          children: [
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: "Exchange",
+                                border: OutlineInputBorder(),
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 15),
+                                hintText: _stockData.exchange,
+                                helperText: "Current: " + _stockData.exchange,
+                              ),
+                              controller: _exchangeController,
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: "Code",
+                                border: OutlineInputBorder(),
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 15),
+                                hintText: _stockData.code,
+                                helperText: "Current: " + _stockData.code,
+                              ),
+                              controller: _codeController,
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: "Name",
+                                border: OutlineInputBorder(),
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 15),
+                                hintText: _stockData?.name ?? "",
+                                helperText:
+                                    "Current: " + (_stockData?.name ?? ""),
+                              ),
+                              controller: _nameController,
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                OutlineButton(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Text("Submit"),
+                                  onPressed: () async {
+                                    if (_exchangeController.text
+                                            .trim()
+                                            .isEmpty &&
+                                        _codeController.text.trim().isEmpty &&
+                                        _nameController.text.trim().isEmpty) {
+                                      Navigator.pop(context);
+                                    } else if (_exchangeController.text
+                                            .trim()
+                                            .isEmpty &&
+                                        _codeController.text.trim().isEmpty) {
+                                      bool res = await DatabaseActions
+                                          .updatePortfolioName(
+                                        _stockData.code,
+                                        _stockData.exchange,
+                                        _nameController.text.trim(),
+                                      );
+                                      if (res) {
+                                        _stockData.name =
+                                            _nameController.text.trim();
+                                      }
+                                      Navigator.pop(context);
+                                    } else {
+                                      String code =
+                                          _codeController.text.trim().isNotEmpty
+                                              ? _codeController.text.trim()
+                                              : _stockData.code;
+                                      String exchange = _exchangeController.text
+                                              .trim()
+                                              .isNotEmpty
+                                          ? _exchangeController.text.trim()
+                                          : _stockData.exchange;
+
+                                      bool res = await DatabaseActions
+                                          .updateTradeLogCodeExchange(
+                                        _stockData.code,
+                                        _stockData.exchange,
+                                        code,
+                                        exchange,
+                                      );
+
+                                      if (res) {
+                                        res = await DatabaseActions
+                                            .updatePortfolioCodeExch(
+                                          _stockData.code,
+                                          _stockData.exchange,
+                                          code,
+                                          exchange,
+                                        );
+                                        
+
+                                        if (res &&
+                                            _nameController.text
+                                                .trim()
+                                                .isNotEmpty) {
+                                          res = await DatabaseActions
+                                              .updatePortfolioName(
+                                            code,
+                                            exchange,
+                                            _nameController.text.trim(),
+                                          );
+                                        }
+                                      }
+
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                )
+                              ],
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -61,17 +251,35 @@ class _TradesRouteState extends State<TradesRoute> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  widget.stockData.exchange + " - " + widget.stockData.code,
-                  style: TextStyle(
-                      fontSize: 12.0, color: Theme.of(context).dividerColor),
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Text(
+                    _stockData.exchange,
+                    style: TextStyle(
+                        fontSize: 15.0, color: Theme.of(context).dividerColor),
+                  ),
                 ),
-                Text(
-                  widget.stockData.name ?? "—",
-                  style: TextStyle(
+                Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Text(
+                    _stockData.code,
+                    style: TextStyle(
+                      fontSize: 13.0,
+                      color: Theme.of(context).dividerColor,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    _stockData.name ?? "—",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
                       fontFamily: 'Rubik',
                       fontSize: 20.0,
-                      fontWeight: FontWeight.values[5]),
+                      fontWeight: FontWeight.values[5],
+                    ),
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -91,7 +299,7 @@ class _TradesRouteState extends State<TradesRoute> {
                           padding:
                               EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                           child: Text(
-                            _stockData?.lastValue?.toStringAsFixed(2) ?? "—",
+                            _value?.toStringAsFixed(2) ?? "—",
                             style: TextStyle(
                                 fontSize: 18,
                                 color: _stockData.changeSign == 1
@@ -128,9 +336,9 @@ class _TradesRouteState extends State<TradesRoute> {
                           child: Text(
                             _stockData.msr?.toStringAsFixed(2) ?? "—",
                             style: TextStyle(
-                                color: _stockData?.lastValue == null ||
+                                color: _value == null ||
                                         _stockData?.msr == null ||
-                                        _stockData?.msr == _stockData?.lastValue
+                                        _stockData?.msr == _value
                                     ? Theme.of(context).accentColor
                                     : _stockData.lastValue > _stockData.msr
                                         ? Colors.green
@@ -157,9 +365,9 @@ class _TradesRouteState extends State<TradesRoute> {
                           child: Text(
                             _stockData.esr?.toStringAsFixed(2) ?? "—",
                             style: TextStyle(
-                                color: _stockData?.lastValue == null ||
+                                color: _value == null ||
                                         _stockData?.esr == null ||
-                                        _stockData?.esr == _stockData?.lastValue
+                                        _stockData?.esr == _value
                                     ? Theme.of(context).accentColor
                                     : _stockData.lastValue > _stockData.esr
                                         ? Colors.green
@@ -186,6 +394,25 @@ class _TradesRouteState extends State<TradesRoute> {
                               EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                           child: Text(_stockData.netPerStock != null
                               ? _stockData.netPerStock.toStringAsFixed(2)
+                              : "—"),
+                        ),
+                      ),
+                      InfoRow(
+                        title: "Net",
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 2),
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                              color: (_stockData?.netSign ?? 0) == 0
+                                  ? Colors.transparent
+                                  : _stockData?.netSign == 1
+                                      ? Colors.green
+                                      : Colors.red),
+                          padding:
+                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Text(_stockData.netAmount != null
+                              ? _stockData.netAmount.toStringAsFixed(2)
                               : "—"),
                         ),
                       ),
@@ -315,7 +542,7 @@ class _TradesRouteState extends State<TradesRoute> {
                                                         _rateController
                                                                 .text.isEmpty
                                                             ? _stockData
-                                                                .lastValue
+                                                                ?.lastValue
                                                             : double.parse(
                                                                 _rateController
                                                                     .text);
