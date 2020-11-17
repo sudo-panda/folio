@@ -119,18 +119,23 @@ class QueryNSEAPI {
       return null;
     }
 
-    var data = jsonDecode(r);
-    var ret = CurrentStockData.fromData(
-        double.parse(data['priceInfo']['lastPrice'].toString()),
-        double.parse(data['priceInfo']['change'].toString())
-            .abs()
-            .toStringAsFixed(2),
-        double.parse(data['priceInfo']['pChange'].toString())
-            .abs()
-            .toStringAsFixed(2),
-        double.parse(data['priceInfo']['change'].toString()).sign.round(),
-        data['metadata']['lastUpdateTime'].toString());
-    return ret;
+    try {
+      var data = jsonDecode(r);
+      var ret = CurrentStockData.fromData(
+          double.parse(data['priceInfo']['lastPrice'].toString()),
+          double.parse(data['priceInfo']['change'].toString())
+              .abs()
+              .toStringAsFixed(2),
+          double.parse(data['priceInfo']['pChange'].toString())
+              .abs()
+              .toStringAsFixed(2),
+          double.parse(data['priceInfo']['change'].toString()).sign.round(),
+          data['metadata']['lastUpdateTime'].toString());
+      return ret;
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 
   static Future<String> getName(String code) async {
@@ -166,7 +171,12 @@ class QueryNSEAPI {
       return null;
     }
     var data = jsonDecode(r);
-    String ret = data['info']['companyName'].toString();
-    return ret;
+    try {
+      String ret = data['info']['companyName'].toString();
+      return ret;
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 }
