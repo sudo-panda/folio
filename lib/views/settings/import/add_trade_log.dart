@@ -43,6 +43,7 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
         centerTitle: true,
         title: Text("Add Trade Log"),
         elevation: 0,
+        backgroundColor: Theme.of(context).backgroundColor,
         actions: [
           IconButton(
             icon: Icon(Icons.check),
