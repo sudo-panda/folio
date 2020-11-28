@@ -8,6 +8,7 @@ class Stock {
   Tracked _tracked;
   Latest _latest;
   static Duration interval = Duration(seconds: 15);
+  bool isVisible = true;
 
   Stock.fromDbTuple(Map<String, dynamic> tuple)
       : assert(tuple != null),

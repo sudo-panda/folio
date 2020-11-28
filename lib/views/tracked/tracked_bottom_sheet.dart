@@ -17,7 +17,6 @@ class TrackedBottomSheet extends StatefulWidget {
 class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
   Stock _stock;
   bool _isRefreshing = true;
-  bool _isTracked = true;
 
   @override
   void initState() {
@@ -126,13 +125,13 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                   width: 50.0,
                   child: IconButton(
                     padding: EdgeInsets.all(0.0),
-                    icon: _isTracked
+                    icon: _stock.isVisible
                         ? Icon(Icons.visibility_off)
                         : Icon(Icons.visibility),
                     iconSize: 25.0,
                     splashRadius: 25.0,
                     onPressed: () {
-                      if (_isTracked) {
+                      if (_stock.isVisible) {
                         DatabaseActions.deleteTracked(
                             _stock.code, _stock.exchange);
                       } else {
@@ -144,10 +143,10 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                         );
                       }
                       setState(() {
-                        _isTracked = !_isTracked;
+                        _stock.isVisible = !_stock.isVisible;
                       });
                     },
-                    tooltip: _isTracked ? "Untrack" : "Retrack",
+                    tooltip: _stock.isVisible ? "Untrack" : "Retrack",
                   ),
                 ),
                 SizedBox(
@@ -166,7 +165,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                         }),
                       );
                     },
-                    tooltip: _isTracked ? "Untrack" : "Retrack",
+                    tooltip: "Details",
                   ),
                 ),
               ],
