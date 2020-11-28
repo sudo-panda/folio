@@ -360,14 +360,14 @@ class DatabaseActions {
     return logs;
   }
 
-  static Future<bool> addTradeLogs(List<TradeLog> logs) async {
+  static Future<T> addTradeLogs<T>(List<TradeLog> logs) async {
     Set updateLater = Set();
 
     return await Db().transact((txn) async {
       int i = 0;
       for (var log in logs) {
         if (++i % 10 == 0) {
-          dev.log("Added " + i.toString() + " logs to DB");
+          dev.log("Processed " + i.toString() + " logs");
         }
         try {
           await txn.insert(Db.tblTradeLog, log.toDbTuple());

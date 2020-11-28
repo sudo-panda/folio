@@ -27,9 +27,7 @@ class _AddFileState extends State<AddFile> {
             icon: Icon(Icons.check),
             onPressed: () async {
               try {
-                var res = await DatabaseActions.addTradeLogs(widget.logs);
-                //TODO: check res
-                print(res);
+                await DatabaseActions.addTradeLogs(widget.logs);
                 Navigator.pop(context);
               } catch (e) {
                 await showDialog(
