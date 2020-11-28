@@ -7,11 +7,18 @@ import 'package:folio/assets/app_theme.dart';
 import 'package:folio/state/app_state.dart';
 import 'package:folio/views/tracked/tracked.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(ChangeNotifierProvider<AppState>(
-      create: (context) => AppState(),
-      child: MyApp(),
-    ));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  var prefs = await SharedPreferences.getInstance();
+
+  runApp(ChangeNotifierProvider<AppState>(
+    create: (context) => AppState(prefs),
+    child: MyApp(),
+  ));
+}
 
 class MyApp extends StatelessWidget {
   @override
