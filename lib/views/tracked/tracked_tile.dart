@@ -83,7 +83,7 @@ class _TrackedTileState extends State<TrackedTile> {
               Expanded(
                 flex: 5,
                 child: Container(
-                  color: (_stock?.lastValue ?? 0) > (_stock?.esr ?? 0)
+                  color: (_stock?.lastValue ?? double.negativeInfinity) > (_stock?.esr ?? double.infinity)
                       ? Colors.lightGreen[600]
                       : Colors.transparent,
                   child: Padding(
