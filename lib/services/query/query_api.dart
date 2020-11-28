@@ -2,15 +2,14 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:folio/models/stocks/current_stock_data.dart';
-import 'package:folio/services/database_access.dart';
+import 'package:folio/models/stock/latest.dart';
 import 'package:folio/services/query/query_bse_api.dart';
 import 'package:flutter/foundation.dart';
 import 'package:folio/services/query/query_nse_api.dart';
 import 'package:folio/services/search.dart';
 
 class QueryAPI {
-  static Future<CurrentStockData> getCurrentData(
+  static Future<Latest> getCurrentData(
       {@required String exchange, @required String code, String key}) async {
     assert(exchange != null && code != null);
     switch (exchange) {
@@ -21,7 +20,6 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
-      DatabaseAccess.updateKey(code, exchange, key);
     }
 
     var dio = Dio()
@@ -42,7 +40,7 @@ class QueryAPI {
         var data = jsonDecode(r.data.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data'];
 
-        var ret = CurrentStockData.fromData(
+        var ret = Latest.fromData(
             double.parse(data['last_value']),
             data['value_change'].toString().substring(1),
             data['percent_change']
@@ -79,7 +77,6 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
-      DatabaseAccess.updateKey(code, exchange, key);
     }
 
     var dio = Dio()

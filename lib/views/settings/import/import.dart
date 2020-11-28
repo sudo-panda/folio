@@ -3,12 +3,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:folio/database/database_helper.dart';
-import 'package:folio/models/trades/trade_log.dart';
+import 'package:folio/models/port/statement.dart';
 
-import 'package:folio/services/parser/sbi_parser.dart';
-import 'package:folio/views/settings/import/database_access.dart';
-import 'package:folio/views/settings/import/table.dart';
+import 'package:folio/views/settings/import/add_file.dart';
+import 'package:folio/views/settings/import/add_trade_log.dart';
+import 'package:folio/views/settings/import/database_actions.dart';
 
 class ImportRoute extends StatelessWidget {
   @override
@@ -43,18 +42,25 @@ class ImportArea extends StatefulWidget {
 class _ImportAreaState extends State<ImportArea> {
   bool _hasImported;
   bool _isButtonEnabled;
-  List<TradeLog> _list;
+  TextEditingController _nseCodeCtl;
+  TextEditingController _bseCodeCtl;
+  List<Statement> _list;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _hasImported = false;
     _isButtonEnabled = true;
+    _nseCodeCtl = TextEditingController();
+    _bseCodeCtl = TextEditingController();
   }
 
   @override
   void dispose() {
     super.dispose();
+    _nseCodeCtl.dispose();
+    _bseCodeCtl.dispose();
   }
 
   @override
@@ -64,8 +70,190 @@ class _ImportAreaState extends State<ImportArea> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text("Choose File"),
+                  trailing: _isButtonEnabled
+                      ? Icon(
+                          Icons.folder_open_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        )
+                      : SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1,
+                          ),
+                        ),
+                  onTap: _isButtonEnabled ? importTrades : null,
+                ),
+                Divider(),
+                Text(
+                  "Manual",
+                  style: Theme.of(context).textTheme.headline6,
+                ),
+                ListTile(
+                  title: Text("Add trade log"),
+                  trailing: Icon(
+                    Icons.input_outlined,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onTap: _isButtonEnabled
+                      ? () async {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) {
+                              return AddTradeLogRoute();
+                            }),
+                          );
+                        }
+                      : null,
+                ),
+                ListTile(
+                  title: Text("Link stock codes across exchanges"),
+                  trailing: Icon(
+                    Icons.link_outlined,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onTap: _isButtonEnabled
+                      ? () async {
+                          await showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor:
+                                  Theme.of(context).backgroundColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "Codes",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "NSE Code",
+                                            border: OutlineInputBorder(),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                              horizontal: 15,
+                                            ),
+                                            helperText: "NSE Code",
+                                          ),
+                                          cursorColor:
+                                              Theme.of(context).accentColor,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText1,
+                                          keyboardType: TextInputType.text,
+                                          controller: _nseCodeCtl,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Required';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: "BSE Code",
+                                            border: OutlineInputBorder(),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                              horizontal: 15,
+                                            ),
+                                            helperText: "BSE Code",
+                                          ),
+                                          cursorColor:
+                                              Theme.of(context).accentColor,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText1,
+                                          keyboardType: TextInputType.text,
+                                          controller: _bseCodeCtl,
+                                          validator: (value) {
+                                            if (value.isEmpty) {
+                                              return 'Required';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          children: [
+                                            FlatButton(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(5),
+                                                ),
+                                              ),
+                                              child: Text("Cancel"),
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                            Spacer(),
+                                            FlatButton(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(5),
+                                                ),
+                                              ),
+                                              child: Text("Add"),
+                                              onPressed: () {
+                                                if (_formKey.currentState
+                                                    .validate()) {
+                                                  DatabaseActions.linkCodes({
+                                                    'NSE': _nseCodeCtl.text,
+                                                    'BSE': _bseCodeCtl.text,
+                                                  });
+                                                  Navigator.pop(context);
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ).then((value) {
+                            _nseCodeCtl.text = "";
+                            _bseCodeCtl.text = "";
+                          });
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+          Spacer(),
           FutureBuilder(
-            future: DatabaseAccess.getRecentDate(),
+            future: DatabaseActions.getRecentDate(),
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return Container(
@@ -75,11 +263,11 @@ class _ImportAreaState extends State<ImportArea> {
                     borderRadius: BorderRadius.all(
                       Radius.circular(10),
                     ),
-                    color: Color(0xAAF0B450),
+                    color: Colors.amberAccent[100]
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline_rounded),
+                      Icon(Icons.info_outline_rounded,),
                       Expanded(
                         child: Text(
                           "Most recent entry is on: "
@@ -109,85 +297,8 @@ class _ImportAreaState extends State<ImportArea> {
               }
             },
           ),
-          Expanded(
-            child: _hasImported ? acceptPrompt() : importPrompt(),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget importPrompt() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                "Choose File",
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RaisedButton(
-              child: _isButtonEnabled
-                  ? Text("Browse")
-                  : SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1,
-                      )),
-              onPressed: _isButtonEnabled ? importTrades : null,
-            )
-          ],
-        )
-      ],
-    );
-  }
-
-  Widget acceptPrompt() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        TradeTable(_list),
-        Text("Total trades: ${_list.length}"),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              RaisedButton(
-                child: _isButtonEnabled
-                    ? Text("Accept")
-                    : SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1,
-                        ),
-                      ),
-                onPressed: _isButtonEnabled ? acceptTrades : null,
-              ),
-              RaisedButton(
-                child: Text("Cancel"),
-                onPressed: _isButtonEnabled ? rejectTrades : null,
-              )
-            ],
-          ),
-        )
-      ],
     );
   }
 
@@ -202,34 +313,19 @@ class _ImportAreaState extends State<ImportArea> {
     if (result != null) {
       String filePath = result.files.first.path;
       String file = File(filePath).readAsStringSync();
+      var logs = await DatabaseActions.parseSBIFile(file); 
 
-      setState(() {
-        _list = SBIParser(file).statementsList;
-        _hasImported = true;
-        _isButtonEnabled = true;
-      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) {
+          return AddFile(logs);
+        }),
+      );
     }
-  }
 
-  void rejectTrades() {
     setState(() {
-      _list = [];
-      _isButtonEnabled = true;
       _hasImported = false;
-    });
-  }
-
-  void acceptTrades() async {
-    setState(() {
-      _isButtonEnabled = false;
-    });
-
-    await DatabaseHelper().updateFromTradeLogs(_list);
-
-    setState(() {
-      _list = [];
       _isButtonEnabled = true;
-      _hasImported = false;
     });
   }
 }

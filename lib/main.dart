@@ -3,34 +3,29 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:folio/views/portfolio/portfolio.dart';
+import 'package:folio/assets/app_theme.dart';
+import 'package:folio/state/app_state.dart';
+import 'package:folio/views/tracked/tracked.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(ChangeNotifierProvider<AppState>(
+      create: (context) => AppState(),
+      child: MyApp(),
+    ));
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Welcome to Flutter',
-      theme: ThemeData(
-        // Add the 3 lines from here...
-        primaryColor: Colors.white,
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF0F0F0),
-        accentColor: Colors.black,
-        accentIconTheme: IconThemeData(color: Colors.white),
-        dividerColor: Colors.black54,
-      ),
-      darkTheme: ThemeData(
-        primaryColor: Colors.black,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        accentColor: Colors.white,
-        accentIconTheme: IconThemeData(color: Colors.black),
-        dividerColor: Colors.white54,
-      ),
-      themeMode: ThemeMode.dark,
-      home: PortfolioRoute(),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return MaterialApp(
+          title: 'Folio',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: appState.isDarkModeOn ? ThemeMode.dark : ThemeMode.light,
+          home: TrackedView(),
+        );
+      },
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 
-import 'package:folio/models/stocks/current_stock_data.dart';
+import 'package:folio/models/stock/latest.dart';
 import 'package:http/http.dart' as http;
 
 class NetworkService {
@@ -86,7 +86,7 @@ class QueryNSEAPI {
     'Upgrade-Insecure-Requests'.toLowerCase(): '1',
   };
 
-  static Future<CurrentStockData> getCurrentData(String code) async {
+  static Future<Latest> getCurrentData(String code) async {
     var session = NetworkService();
     var uri = Uri.https(
       'www.nseindia.com',
@@ -121,7 +121,7 @@ class QueryNSEAPI {
 
     try {
       var data = jsonDecode(r);
-      var ret = CurrentStockData.fromData(
+      var ret = Latest.fromData(
           double.parse(data['priceInfo']['lastPrice'].toString()),
           double.parse(data['priceInfo']['change'].toString())
               .abs()

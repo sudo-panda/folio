@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:folio/models/stocks/current_stock_data.dart';
+import 'package:folio/models/stock/latest.dart';
 
 class QueryBSEAPI {
-  static Future<CurrentStockData> getCurrentData(String code) async {
+  static Future<Latest> getCurrentData(String code) async {
     var dio = Dio()
       ..options.headers = {
         'User-Agent'.toLowerCase():
@@ -27,7 +27,7 @@ class QueryBSEAPI {
       );
       if (r.statusCode == 200) {
         var data = jsonDecode(r.data);
-        var ret = CurrentStockData.fromData(
+        var ret = Latest.fromData(
             double.parse(data['CurrVal']),
             (double.parse(data['CurrVal']) - double.parse(data['PrevClose']))
                 .abs()
