@@ -86,133 +86,150 @@ class _DetailsViewState extends State<DetailsView>
         centerTitle: true,
         title: Text("Details"),
         elevation: 0,
+        backgroundColor: Theme.of(context).backgroundColor,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Container(
+            color: Theme.of(context).backgroundColor,
+            child: Column(
               children: [
-                _stock?.name == null
-                    ? TextLoadingIndicator(
-                        width: 200,
-                        height: Theme.of(context).textTheme.headline6.fontSize)
-                    : Text(
-                        _stock?.name,
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _stock?.name == null
+                          ? TextLoadingIndicator(
+                              width: 200,
+                              height:
+                                  Theme.of(context).textTheme.headline6.fontSize)
+                          : Text(
+                              _stock?.name,
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
+                    ],
+                  ),
+                ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    _stock?.bseCode != null
+                        ? Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "BSE - " + _stock?.bseCode,
+                                  style: Theme.of(context).textTheme.bodyText1,
+                                ),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () async {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (context) => EditCodeDialog(
+                                          _stock?.bseCode, "BSE", updateBSECode),
+                                    );
+                                  },
+                                  iconSize: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1
+                                          .fontSize +
+                                      3,
+                                  splashRadius: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1
+                                      .fontSize,
+                                ),
+                              ],
+                            ),
+                          )
+                        : Container(
+                            width: 0,
+                          ),
+                    _stock?.nseCode != null
+                        ? Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "NSE - " + _stock?.nseCode,
+                                  style: Theme.of(context).textTheme.bodyText1,
+                                ),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => EditCodeDialog(
+                                          _stock?.nseCode, "NSE", updateNSECode),
+                                    );
+                                  },
+                                  iconSize: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1
+                                          .fontSize +
+                                      3,
+                                  splashRadius: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1
+                                      .fontSize,
+                                )
+                              ],
+                            ),
+                          )
+                        : Container(
+                            width: 0,
+                          ),
+                  ],
+                ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    _stock?.bseCode != null
+                        ? MapTile(
+                            name: "BSE PRICE",
+                            value: _bseLatest?.value?.toStringAsFixed(2) ?? "...",
+                          )
+                        : Container(
+                            width: 0,
+                          ),
+                    _stock?.nseCode != null
+                        ? MapTile(
+                            name: "NSE PRICE",
+                            value: _nseLatest?.value?.toStringAsFixed(2) ?? "...",
+                          )
+                        : Container(
+                            width: 0,
+                          ),
+                    MapTile(
+                      name: "QTY",
+                      value: _stock?.qty?.toString() ?? "N/A",
+                    ),
+                    MapTile(
+                      name: "ESR",
+                      value: _stock?.esr?.toStringAsFixed(2) ?? "N/A",
+                    ),
+                    MapTile(
+                      name: "MSR",
+                      value: _stock?.msr?.toStringAsFixed(2) ?? "N/A",
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
               ],
             ),
-          ),
-          Wrap(
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            children: [
-              _stock?.bseCode != null
-                  ? Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "BSE - " + _stock?.bseCode,
-                            style: Theme.of(context).textTheme.bodyText1,
-                          ),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: Icon(Icons.edit),
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => EditCodeDialog(
-                                    _stock?.bseCode, "BSE", updateBSECode),
-                              );
-                            },
-                            iconSize:
-                                Theme.of(context).textTheme.bodyText1.fontSize +
-                                    3,
-                            splashRadius:
-                                Theme.of(context).textTheme.bodyText1.fontSize,
-                          ),
-                        ],
-                      ),
-                    )
-                  : Container(
-                      width: 0,
-                    ),
-              _stock?.nseCode != null
-                  ? Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            "NSE - " + _stock?.nseCode,
-                            style: Theme.of(context).textTheme.bodyText1,
-                          ),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: Icon(Icons.edit),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => EditCodeDialog(
-                                    _stock?.nseCode, "NSE", updateNSECode),
-                              );
-                            },
-                            iconSize:
-                                Theme.of(context).textTheme.bodyText1.fontSize +
-                                    3,
-                            splashRadius:
-                                Theme.of(context).textTheme.bodyText1.fontSize,
-                          )
-                        ],
-                      ),
-                    )
-                  : Container(
-                      width: 0,
-                    ),
-            ],
-          ),
-          Wrap(
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            children: [
-              _stock?.bseCode != null
-                  ? MapTile(
-                      name: "BSE PRICE",
-                      value: _bseLatest?.value?.toStringAsFixed(2) ?? "...",
-                    )
-                  : Container(
-                      width: 0,
-                    ),
-              _stock?.nseCode != null
-                  ? MapTile(
-                      name: "NSE PRICE",
-                      value: _nseLatest?.value?.toStringAsFixed(2) ?? "...",
-                    )
-                  : Container(
-                      width: 0,
-                    ),
-              MapTile(
-                name: "QTY",
-                value: _stock?.qty?.toString() ?? "N/A",
-              ),
-              MapTile(
-                name: "ESR",
-                value: _stock?.esr?.toStringAsFixed(2) ?? "N/A",
-              ),
-              MapTile(
-                name: "MSR",
-                value: _stock?.msr?.toStringAsFixed(2) ?? "N/A",
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 10,
           ),
           Row(
             children: [
