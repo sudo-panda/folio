@@ -573,7 +573,7 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
                           Radius.circular(5),
                         ),
                       ),
-                      child: Text("Add"),
+                      child: Text("Apply"),
                       onPressed: () async {
                         if (_formKey.currentState.validate()) {
                           if (widget.code != _codeCtl.text) {
