@@ -1,13 +1,6 @@
-## Bug Fixes
-
-- Consistent logs showing up as inconsistent
-- Qty, msr and esr miscalculated when all stocks sold
-
 ## User Experience Enhancements
 
-- Added option to edit stock code, exchange and name
-- Added spacing between pinned and unpinned stocks for better differentiation
-
-## Develeper Enchancements
-
-- Improved logging
+- Huge UI overhaul
+- Stocks bought from one exchange and sold in another can be recognised
+- Trade logs can also be seen along with tracked stocks
+- Logs of individual stocks can be seen in the logs tab of tracked stocks
