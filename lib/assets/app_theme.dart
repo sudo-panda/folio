@@ -37,6 +37,7 @@ class AppTheme {
     iconTheme: IconThemeData(
       color: _iconColor,
     ),
+    accentColor: _iconColor,
     textTheme: _lightTextTheme,
     canvasColor: Colors.transparent,
     buttonColor: _lightSecondaryColor,
@@ -64,6 +65,7 @@ class AppTheme {
     iconTheme: IconThemeData(
       color: _iconColor,
     ),
+    accentColor: _iconColor,
     textTheme: _darkTextTheme,
     canvasColor: Colors.transparent,
     buttonColor: _darkSecondaryColor,
@@ -71,7 +73,8 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(),
       enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _darkPrimaryVariantColor)),
+        borderSide: BorderSide(color: _darkPrimaryVariantColor),
+      ),
     ),
   );
 
