@@ -51,7 +51,10 @@ class _TrackedTileState extends State<TrackedTile> {
   Widget build(BuildContext context) {
     return Card(
       key: _scaffold,
-      color: Theme.of(context).backgroundColor,
+      color: (_stock?.lastValue ?? double.negativeInfinity) >
+              (_stock?.esr ?? double.infinity)
+          ? Colors.lightGreen[600]
+          : Theme.of(context).backgroundColor,
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -83,9 +86,6 @@ class _TrackedTileState extends State<TrackedTile> {
               Expanded(
                 flex: 5,
                 child: Container(
-                  color: (_stock?.lastValue ?? double.negativeInfinity) > (_stock?.esr ?? double.infinity)
-                      ? Colors.lightGreen[600]
-                      : Colors.transparent,
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: 5.0,
