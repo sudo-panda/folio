@@ -32,7 +32,7 @@ class _DetailsViewState extends State<DetailsView>
   TradeCycle _computedCycle;
   TradeSummary _summary;
   Future<TradeSummary> _futureSummary;
-  Future<List<TradeLog>> _futureLogs;
+
   StreamSubscription<Latest> _latestBSEStreamSub;
   StreamSubscription<Latest> _latestNSEStreamSub;
   TabController _tabController;
@@ -40,8 +40,6 @@ class _DetailsViewState extends State<DetailsView>
   final _formKey = GlobalKey<FormState>();
   final _qtyController = TextEditingController();
   final _rateController = TextEditingController();
-
-  List<bool> _isSelected;
 
   @override
   void initState() {
@@ -68,7 +66,6 @@ class _DetailsViewState extends State<DetailsView>
     _summary = TradeSummary(imp.DatabaseActions.getBuyLogs(_stock.id),
         imp.DatabaseActions.getSellLogs(_stock.id));
     _futureSummary = _summary.calculateSummary(0);
-    _isSelected = [true, false];
     _tabController = new TabController(vsync: this, length: 4);
   }
 
@@ -96,7 +93,7 @@ class _DetailsViewState extends State<DetailsView>
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.symmetric(horizontal:30.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -107,9 +104,12 @@ class _DetailsViewState extends State<DetailsView>
                                   .textTheme
                                   .headline6
                                   .fontSize)
-                          : Text(
-                              _stock?.name,
-                              style: Theme.of(context).textTheme.headline6,
+                          : Flexible(
+                              child: Text(
+                                _stock?.name,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headline6,
+                              ),
                             ),
                     ],
                   ),

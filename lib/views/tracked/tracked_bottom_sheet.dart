@@ -217,9 +217,12 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                     ? TextLoadingIndicator(
                         width: 200,
                         height: Theme.of(context).textTheme.headline6.fontSize)
-                    : Text(
-                        _stock?.name,
-                        style: Theme.of(context).textTheme.headline6,
+                    : Flexible(
+                        child: Text(
+                          _stock?.name,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
                       ),
               ],
             ),
