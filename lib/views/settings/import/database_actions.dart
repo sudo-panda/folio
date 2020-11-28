@@ -354,7 +354,7 @@ class DatabaseActions {
         logs.add(TradeLog(date, id, code, exchange, true, buyQty, buyRate));
 
       if (sellQty > 0)
-        logs.add(TradeLog(date, id, code, exchange, false, buyQty, buyRate));
+        logs.add(TradeLog(date, id, code, exchange, false, sellQty, sellRate));
     }
 
     return logs;
