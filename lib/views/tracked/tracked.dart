@@ -104,7 +104,6 @@ class _TrackedViewState extends State<TrackedView> {
                                               child: TextFormField(
                                                 decoration: InputDecoration(
                                                   labelText: "Code",
-                                                  border: OutlineInputBorder(),
                                                   contentPadding:
                                                       EdgeInsets.symmetric(
                                                     horizontal: 15,
@@ -144,12 +143,6 @@ class _TrackedViewState extends State<TrackedView> {
                                                         fontSize: 16.0,
                                                       ),
                                                       helperText: 'Exchange',
-                                                      border:
-                                                          OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(5.0),
-                                                      ),
                                                       contentPadding:
                                                           EdgeInsets.symmetric(
                                                               horizontal: 15),

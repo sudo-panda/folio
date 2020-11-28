@@ -150,7 +150,6 @@ class _ImportAreaState extends State<ImportArea> {
                                         child: TextFormField(
                                           decoration: InputDecoration(
                                             labelText: "NSE Code",
-                                            border: OutlineInputBorder(),
                                             contentPadding:
                                                 EdgeInsets.symmetric(
                                               horizontal: 15,
@@ -177,7 +176,6 @@ class _ImportAreaState extends State<ImportArea> {
                                         child: TextFormField(
                                           decoration: InputDecoration(
                                             labelText: "BSE Code",
-                                            border: OutlineInputBorder(),
                                             contentPadding:
                                                 EdgeInsets.symmetric(
                                               horizontal: 15,

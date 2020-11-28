@@ -302,7 +302,6 @@ class _DetailsViewState extends State<DetailsView>
                                 TextFormField(
                                   decoration: InputDecoration(
                                       labelText: "Qty",
-                                      border: OutlineInputBorder(),
                                       contentPadding:
                                           EdgeInsets.symmetric(horizontal: 15),
                                       helperText: "Sell Qty"),
@@ -327,7 +326,6 @@ class _DetailsViewState extends State<DetailsView>
                                 TextFormField(
                                   decoration: InputDecoration(
                                       labelText: "Rate",
-                                      border: OutlineInputBorder(),
                                       contentPadding:
                                           EdgeInsets.symmetric(horizontal: 15),
                                       helperText: "Sell Rate"),
@@ -536,7 +534,6 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: widget.exchange + " code",
-                    border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 15,
                     ),
