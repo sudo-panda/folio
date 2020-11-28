@@ -1,11 +1,22 @@
 import 'dart:developer';
 
 import 'package:folio/helpers/database.dart';
+import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/models/stock/stock.dart';
 import 'package:folio/views/settings/import/database_actions.dart' as imp;
 
 class DatabaseActions {
-  static Db db = Db();
+  static Future<List<TradeLog>> getStockLogs(int stockId) async {
+    List<Map> tuples = await Db().getOrderedQuery(
+        Db.tblTradeLog,
+        '${Db.colStockID} = ?',
+        [stockId],
+        '${Db.colDate} DESC, ${Db.colCode} ASC');
+
+    List<TradeLog> logs = [];
+    tuples.forEach((row) => logs.add(TradeLog.fromDbTuple(row)));
+    return logs;
+  }
 
   static Future<List<Stock>> getPinnedStocks() async {
     try {

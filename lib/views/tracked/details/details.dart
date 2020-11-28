@@ -32,6 +32,7 @@ class _DetailsViewState extends State<DetailsView>
   TradeCycle _computedCycle;
   TradeSummary _summary;
   Future<TradeSummary> _futureSummary;
+  Future<List<TradeLog>> _futureLogs;
   StreamSubscription<Latest> _latestBSEStreamSub;
   StreamSubscription<Latest> _latestNSEStreamSub;
   TabController _tabController;
@@ -68,7 +69,7 @@ class _DetailsViewState extends State<DetailsView>
         imp.DatabaseActions.getSellLogs(_stock.id));
     _futureSummary = _summary.calculateSummary(0);
     _isSelected = [true, false];
-    _tabController = new TabController(vsync: this, length: 3);
+    _tabController = new TabController(vsync: this, length: 4);
   }
 
   @override
@@ -102,8 +103,10 @@ class _DetailsViewState extends State<DetailsView>
                       _stock?.name == null
                           ? TextLoadingIndicator(
                               width: 200,
-                              height:
-                                  Theme.of(context).textTheme.headline6.fontSize)
+                              height: Theme.of(context)
+                                  .textTheme
+                                  .headline6
+                                  .fontSize)
                           : Text(
                               _stock?.name,
                               style: Theme.of(context).textTheme.headline6,
@@ -133,7 +136,9 @@ class _DetailsViewState extends State<DetailsView>
                                     await showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
-                                          _stock?.bseCode, "BSE", updateBSECode),
+                                          _stock?.bseCode,
+                                          "BSE",
+                                          updateBSECode),
                                     );
                                   },
                                   iconSize: Theme.of(context)
@@ -170,7 +175,9 @@ class _DetailsViewState extends State<DetailsView>
                                     showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
-                                          _stock?.nseCode, "NSE", updateNSECode),
+                                          _stock?.nseCode,
+                                          "NSE",
+                                          updateNSECode),
                                     );
                                   },
                                   iconSize: Theme.of(context)
@@ -198,7 +205,8 @@ class _DetailsViewState extends State<DetailsView>
                     _stock?.bseCode != null
                         ? MapTile(
                             name: "BSE PRICE",
-                            value: _bseLatest?.value?.toStringAsFixed(2) ?? "...",
+                            value:
+                                _bseLatest?.value?.toStringAsFixed(2) ?? "...",
                           )
                         : Container(
                             width: 0,
@@ -206,7 +214,8 @@ class _DetailsViewState extends State<DetailsView>
                     _stock?.nseCode != null
                         ? MapTile(
                             name: "NSE PRICE",
-                            value: _nseLatest?.value?.toStringAsFixed(2) ?? "...",
+                            value:
+                                _nseLatest?.value?.toStringAsFixed(2) ?? "...",
                           )
                         : Container(
                             width: 0,
@@ -250,6 +259,9 @@ class _DetailsViewState extends State<DetailsView>
                         Tab(
                           child: Text("CYCLES"),
                         ),
+                        Tab(
+                          child: Text("LOGS"),
+                        ),
                       ],
                       indicatorColor: Theme.of(context).accentColor,
                       labelColor: Theme.of(context).accentColor,
@@ -290,7 +302,7 @@ class _DetailsViewState extends State<DetailsView>
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(20.0),
+                            padding: const EdgeInsets.all(30.0),
                             child: Center(
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
@@ -302,94 +314,99 @@ class _DetailsViewState extends State<DetailsView>
                         ],
                       );
                     }
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Form(
-                          key: _formKey,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Theme.of(context).backgroundColor,
-                            ),
-                            margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                      labelText: "Qty",
-                                      contentPadding:
-                                          EdgeInsets.symmetric(horizontal: 15),
-                                      helperText: "Sell Qty"),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.allow(
-                                        RegExp(r'[0-9]')),
-                                  ],
-                                  validator: (value) {
-                                    if (value.isEmpty) {
-                                      return 'Required';
-                                    } else if (int.parse(value) > _stock.qty) {
-                                      return 'Too High!';
-                                    }
-                                    return null;
-                                  },
-                                  controller: _qtyController,
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                      labelText: "Rate",
-                                      contentPadding:
-                                          EdgeInsets.symmetric(horizontal: 15),
-                                      helperText: "Sell Rate"),
-                                  keyboardType: TextInputType.numberWithOptions(
-                                      decimal: true),
-                                  validator: (value) {
-                                    if (value.isEmpty ||
-                                        RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
-                                            .hasMatch(value)) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Form(
+                            key: _formKey,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Theme.of(context).backgroundColor,
+                              ),
+                              margin: EdgeInsets.symmetric(horizontal: 20),
+                              padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                        labelText: "Qty",
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 15),
+                                        helperText: "Sell Qty"),
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'[0-9]')),
+                                    ],
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Required';
+                                      } else if (int.parse(value) >
+                                          _stock.qty) {
+                                        return 'Too High!';
+                                      }
                                       return null;
-                                    }
-                                    return "Enter valid rate";
-                                  },
-                                  controller: _rateController,
-                                ),
-                                Row(
-                                  children: [
-                                    Spacer(),
-                                    FlatButton(
-                                      child: Text("Calculate"),
-                                      onPressed: () {
-                                        if (_formKey.currentState.validate()) {
-                                          int qty =
-                                              int.parse(_qtyController.text);
-                                          double rate =
-                                              _rateController.text.isEmpty
-                                                  ? _stock?.lastValue
-                                                  : double.parse(
-                                                      _rateController.text);
-                                          var cycle =
-                                              _summary.computeCycle(qty, rate);
-                                          setState(() {
-                                            _computedCycle = cycle; //TODO
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    },
+                                    controller: _qtyController,
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                        labelText: "Rate",
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 15),
+                                        helperText: "Sell Rate"),
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    validator: (value) {
+                                      if (value.isEmpty ||
+                                          RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
+                                              .hasMatch(value)) {
+                                        return null;
+                                      }
+                                      return "Enter valid rate";
+                                    },
+                                    controller: _rateController,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Spacer(),
+                                      FlatButton(
+                                        child: Text("Calculate"),
+                                        onPressed: () {
+                                          if (_formKey.currentState
+                                              .validate()) {
+                                            int qty =
+                                                int.parse(_qtyController.text);
+                                            double rate =
+                                                _rateController.text.isEmpty
+                                                    ? _stock?.lastValue
+                                                    : double.parse(
+                                                        _rateController.text);
+                                            var cycle = _summary.computeCycle(
+                                                qty, rate);
+                                            setState(() {
+                                              _computedCycle = cycle; //TODO
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        _computedCycle == null
-                            ? Container()
-                            : CycleTile(_computedCycle),
-                      ],
+                          _computedCycle == null
+                              ? Container()
+                              : CycleTile(_computedCycle),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -416,11 +433,30 @@ class _DetailsViewState extends State<DetailsView>
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
-                            child: SizedBox(
-                              width: 200,
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headline4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (_summary.portfolio.length == 0) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
+                              child: Text(
+                                "No stocks remaining",
+                                textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.headline4,
                               ),
                             ),
@@ -460,11 +496,29 @@ class _DetailsViewState extends State<DetailsView>
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
-                            child: SizedBox(
-                              width: 200,
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headline4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    if (_summary.cycles.length == 0) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
+                              child: Text(
+                                "No stocks sold",
+                                textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.headline4,
                               ),
                             ),
@@ -481,6 +535,68 @@ class _DetailsViewState extends State<DetailsView>
                     );
                   },
                 ),
+                FutureBuilder(
+                  future: DatabaseActions.getStockLogs(_stock.id),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Center(
+                            child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1,
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
+                              child: Text(
+                                "An error occurred",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headline4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    if (snapshot.data.length == 0) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
+                            child: Center(
+                              child: Text(
+                                "No logs imported",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.headline4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return LogTile(snapshot.data[index]);
+                      },
+                      itemCount: snapshot.data.length,
+                    );
+                  },
+                )
               ],
             ),
           ),
@@ -533,7 +649,7 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(30.0),
         child: Form(
           key: _formKey,
           child: Column(
