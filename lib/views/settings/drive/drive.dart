@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:folio/database/database_helper.dart';
+import 'package:folio/helpers/database.dart';
 import 'package:folio/services/google_api/google_auth_client.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -171,7 +171,7 @@ class _DriveAreaState extends State<DriveArea> {
     final authenticateClient = GoogleAuthClient(authHeaders);
     final driveApi = drive.DriveApi(authenticateClient);
 
-    final path = await DatabaseHelper().getDbPath();
+    final path = await Db().getDbPath();
     final file = File(path);
 
     var media = drive.Media(file.openRead(), file.lengthSync());
@@ -180,7 +180,7 @@ class _DriveAreaState extends State<DriveArea> {
     driveFile.name = _fileFormatter.format(DateTime.now());
     driveFile.parents = ["appDataFolder"];
     final result = await driveApi.files.create(driveFile, uploadMedia: media);
-    print("Upload result: $result");
+    log("Upload result: $result");
 
     setState(() {
       _isBackingUp = false;
@@ -272,14 +272,14 @@ class _DriveAreaState extends State<DriveArea> {
       drive.Media file = await driveApi.files
           .get(id, downloadOptions: drive.DownloadOptions.FullMedia);
 
-      final saveFile = File(await DatabaseHelper().getDbPath());
+      final saveFile = File(await Db().getDbPath());
       List<int> dataStore = [];
       file.stream.listen((data) {
         dataStore.insertAll(dataStore.length, data);
       }, onDone: () async {
-        print("Download Done");
+        log("Download Done");
         saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
-          print("Written to File");
+          log("Written to File");
         });
       }, onError: (e) {
         log("drive.showRestoreDialog() => \n " + e.toString());
