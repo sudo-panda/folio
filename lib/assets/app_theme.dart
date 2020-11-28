@@ -41,6 +41,9 @@ class AppTheme {
     canvasColor: Colors.transparent,
     buttonColor: _lightSecondaryColor,
     unselectedWidgetColor: _lightPrimaryVariantColor,
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(),
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData.dark().copyWith(
@@ -65,6 +68,11 @@ class AppTheme {
     canvasColor: Colors.transparent,
     buttonColor: _darkSecondaryColor,
     unselectedWidgetColor: _darkPrimaryVariantColor,
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(),
+      enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: _darkPrimaryVariantColor)),
+    ),
   );
 
   static final TextTheme _lightTextTheme = TextTheme(

@@ -143,7 +143,6 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: "Code",
-                    border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 15,
                     ),
@@ -173,9 +172,6 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                           fontSize: 16.0,
                         ),
                         helperText: 'Exchange',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5.0),
-                        ),
                         contentPadding: EdgeInsets.symmetric(horizontal: 15),
                       ),
                       isEmpty: false,
@@ -210,7 +206,6 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: "Date",
-                    border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Date",
                   ),
@@ -244,7 +239,6 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: "Quantity",
-                    border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Quantity",
                   ),
@@ -268,7 +262,6 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                 child: TextFormField(
                   decoration: InputDecoration(
                     labelText: "Rate",
-                    border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Rate",
                   ),
