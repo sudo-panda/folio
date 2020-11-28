@@ -261,7 +261,7 @@ class _ImportAreaState extends State<ImportArea> {
                     borderRadius: BorderRadius.all(
                       Radius.circular(10),
                     ),
-                    color: Colors.amberAccent[100]
+                    color: Colors.amberAccent
                   ),
                   child: Row(
                     children: [
@@ -275,6 +275,7 @@ class _ImportAreaState extends State<ImportArea> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
+                            color: Theme.of(context).accentColor
                           ),
                         ),
                       ),
