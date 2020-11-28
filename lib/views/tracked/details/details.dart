@@ -272,11 +272,12 @@ class _DetailsViewState extends State<DetailsView>
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
-                            child: SizedBox(
-                              width: 200,
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Center(
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
+                                textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.headline4,
                               ),
                             ),
