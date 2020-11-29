@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:folio/models/stock/stock.dart';
+import 'package:folio/models/database/portfolio.dart';
 import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
-import 'package:folio/views/settings/data/track_stock_dialog.dart';
-import 'package:folio/views/tracked/database_actions.dart';
-import 'package:folio/views/tracked/tracked_list.dart';
+import 'package:folio/views/portfolio/database_actions.dart';
+import 'package:folio/views/portfolio/portfolio_tile.dart';
+import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
+import 'package:folio/views/settings/data/add_trade_log.dart';
 
-class TrackedView extends StatefulWidget {
+class PortfolioView extends StatefulWidget {
   @override
-  _TrackedViewState createState() => _TrackedViewState();
+  _PortfolioViewState createState() => _PortfolioViewState();
 }
 
-class _TrackedViewState extends State<TrackedView> {
-  Future<List<Stock>> _pinnedStockFuture;
-  Future<List<Stock>> _unpinnedStockFuture;
-
-  Future<bool> hasData() async {
-    if (((await _pinnedStockFuture)?.length ?? 0) == 0 &&
-        ((await _unpinnedStockFuture)?.length ?? 0) == 0) return false;
-
-    return true;
-  }
+class _PortfolioViewState extends State<PortfolioView> {
+  Future<List<Portfolio>> _getPortfolioFuture;
 
   @override
   void initState() {
     super.initState();
-    _pinnedStockFuture = DatabaseActions.getPinnedStocks();
-    _unpinnedStockFuture = DatabaseActions.getUnpinnedStocks();
+    _getPortfolioFuture = DatabaseActions.getAllPortfolios();
   }
 
   @override
@@ -48,12 +40,17 @@ class _TrackedViewState extends State<TrackedView> {
             delegate: SliverChildListDelegate(
               [
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 10,
+                    bottom: 10,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        "Tracked",
+                        "Portfolio",
                         style: Theme.of(context).textTheme.headline1,
                       ),
                       RaisedButton(
@@ -64,62 +61,59 @@ class _TrackedViewState extends State<TrackedView> {
                         onPressed: () {
                           showDialog(
                             context: context,
-                            builder: (context) => TrackStockDialog(),
+                            builder: (context) => AddPortfolioDialog(),
                           );
                         },
-                      )
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          TrackedList(
-            future: _pinnedStockFuture,
-          ),
           FutureBuilder(
-            future: hasData(),
+            future: _getPortfolioFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1,
-                      ),
-                    ),
-                  ),
+                return SliverToBoxAdapter(
+                  child: Container(),
                 );
-              } else if (!snapshot.data) {
+              }
+              if (snapshot.hasError) {
                 return SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
-                      "No stocks tracked",
+                      "Some error occurred",
                       style: Theme.of(context).textTheme.headline4,
                     ),
                   ),
                 );
-              } else {
-                return SliverList(
-                  delegate: SliverChildListDelegate([
-                    SizedBox(
-                      height: 20,
-                    )
-                  ]),
+              }
+              if (snapshot.hasData && (snapshot.data?.length ?? 0) == 0) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      "No stocks in your portfolio",
+                      style: Theme.of(context).textTheme.headline4,
+                    ),
+                  ),
                 );
               }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return PortfolioTile(snapshot.data[index]);
+                  },
+                  childCount: snapshot.data.length,
+                ),
+              );
             },
-          ),
-          TrackedList(
-            future: _unpinnedStockFuture,
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavbar(0),
+      bottomNavigationBar: BottomNavbar(2),
     );
   }
 }

@@ -34,9 +34,11 @@ class _TrackedTileState extends State<TrackedTile> {
     });
     if (_stock.name == null) {
       StockRepository.getName(_stock.code, _stock.exchange).then((value) {
-        setState(() {
-          _stock.name = value;
-        });
+        if (this.mounted) {
+          setState(() {
+            _stock.name = value;
+          });
+        }
       });
     }
   }
@@ -55,7 +57,7 @@ class _TrackedTileState extends State<TrackedTile> {
               (_stock?.esr ?? double.infinity)
           ? Colors.lightGreen[600]
           : Theme.of(context).backgroundColor,
-      elevation: 4,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),

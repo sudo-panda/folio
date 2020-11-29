@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:folio/views/settings/import/database_actions.dart';
+import 'package:folio/views/settings/data/database_actions.dart';
 
 class AddTradeLogRoute extends StatefulWidget {
   @override

@@ -1,4 +1,5 @@
 import 'package:folio/helpers/database.dart';
+import 'package:googleapis/androidmanagement/v1.dart';
 
 class TradeLog {
   DateTime date;
@@ -9,7 +10,8 @@ class TradeLog {
   int qty;
   double rate;
 
-  TradeLog(this.date, this.id, this.code, this.exchange, this.bought, this.qty, this.rate);
+  TradeLog(this.date, this.id, this.code, this.exchange, this.bought, this.qty,
+      this.rate);
 
   TradeLog.fromDbTuple(Map<String, dynamic> tuple) {
     id = tuple[Db.colStockID];
@@ -51,5 +53,10 @@ class TradeLog {
           '-' +
           date.day.toString().padLeft(2, '0'),
     };
+  }
+
+  @override
+  String toString() {
+    return this.toDbTuple().toString();
   }
 }

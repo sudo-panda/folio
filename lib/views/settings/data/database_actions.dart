@@ -44,7 +44,7 @@ class DatabaseActions {
       if (!res) return res;
       tuples = await Db().getQuery(Db.tblPortfolio, where, [code]);
     }
-    
+
     if (!(await Db().insert(
       Db.tblTradeLog,
       {
@@ -106,6 +106,22 @@ class DatabaseActions {
             '${Db.colRowID} = ?',
             [rowID],
           );
+          var portfolio = await Db().getQuery(
+            Db.tblPortfolio,
+            '${Db.colRowID} = ?',
+            [rowID],
+          );
+          await Db().deleteQuery(
+            Db.tblTracked,
+            '${Db.colCode} = ? and ${Db.colExch} = ?',
+            [portfolio.first[Db.colBSECode], "BSE"],
+          );
+
+          await Db().deleteQuery(
+            Db.tblTracked,
+            '${Db.colCode} = ? and ${Db.colExch} = ?',
+            [portfolio.first[Db.colNSECode], "NSE"],
+          );
           return false;
         }
 
@@ -166,6 +182,22 @@ class DatabaseActions {
     } else {
       msr = null;
       esr = null;
+      var portfolio = await Db().getQuery(
+        Db.tblPortfolio,
+        '${Db.colRowID} = ?',
+        [rowID],
+      );
+      await Db().deleteQuery(
+        Db.tblTracked,
+        '${Db.colCode} = ? and ${Db.colExch} = ?',
+        [portfolio.first[Db.colBSECode], "BSE"],
+      );
+
+      await Db().deleteQuery(
+        Db.tblTracked,
+        '${Db.colCode} = ? and ${Db.colExch} = ?',
+        [portfolio.first[Db.colNSECode], "NSE"],
+      );
     }
 
     bool res = await Db().updateConditionally(
@@ -360,6 +392,92 @@ class DatabaseActions {
     return logs;
   }
 
+  static Future<List<TradeLog>> parseCSVFile(String file) async {
+    Document parsedHTML = html.parse(file);
+    List<String> headers = [];
+
+    for (var cell in parsedHTML
+        .querySelector("#grdViewTradeDetail")
+        .querySelectorAll("tr")
+        .first
+        .querySelectorAll("th")) {
+      headers.add(cell.innerHtml);
+    }
+
+    List<TradeLog> logs = [];
+
+    for (var row in parsedHTML
+        .querySelector("#grdViewTradeDetail")
+        .querySelectorAll("tr")
+        .skip(1)) {
+      DateTime date;
+      String exchange, code, scripCode, scripName;
+      int buyQty = 0, sellQty = 0;
+      double buyRate = 0, sellRate = 0;
+
+      int i = 0;
+      for (var cell in row.querySelectorAll("td")) {
+        switch (headers[i]) {
+          case "Date":
+            date = DateTime.utc(
+                int.parse(cell.innerHtml
+                    .substring(cell.innerHtml.lastIndexOf('/') + 1)),
+                int.parse(cell.innerHtml.substring(
+                    cell.innerHtml.indexOf('/') + 1,
+                    cell.innerHtml.lastIndexOf('/'))),
+                int.parse(
+                    cell.innerHtml.substring(0, cell.innerHtml.indexOf('/'))));
+            break;
+          case "Exch":
+            exchange = cell.innerHtml.trim();
+            break;
+          case "Scrip Code":
+            scripCode = cell.innerHtml.substring(1).trim();
+            break;
+          case "Scrip Name":
+            scripName = html
+                .parse(html.parse(cell.innerHtml).body.text)
+                .documentElement
+                .text
+                .trim();
+            break;
+          case "Buy Qty":
+            buyQty = int.parse(cell.innerHtml.trim());
+            break;
+          case "Sold Qty":
+            sellQty = int.parse(cell.innerHtml.trim());
+            break;
+          case "Buy Rate":
+            buyRate = double.parse(cell.innerHtml.trim());
+            break;
+          case "Sold Rate":
+            sellRate = double.parse(cell.innerHtml.trim());
+            break;
+          default:
+            break;
+        }
+        i++;
+      }
+      switch (exchange) {
+        case "BSE":
+          code = scripCode;
+          break;
+        case "NSE":
+          code = scripName;
+          break;
+      }
+      int id =
+          await DatabaseActions.getRowIDAfterSettingCodes(scripCode, scripName);
+      if (buyQty > 0)
+        logs.add(TradeLog(date, id, code, exchange, true, buyQty, buyRate));
+
+      if (sellQty > 0)
+        logs.add(TradeLog(date, id, code, exchange, false, sellQty, sellRate));
+    }
+
+    return logs;
+  }
+
   static Future<T> addTradeLogs<T>(List<TradeLog> logs) async {
     Set updateLater = Set();
 
@@ -391,5 +509,9 @@ class DatabaseActions {
       }
       return value;
     });
+  }
+
+  static void deleteDbThenInit() {
+    Db().deleteDbThenInit();
   }
 }

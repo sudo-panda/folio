@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/views/logs/log_tile.dart';
-import 'package:folio/views/settings/import/database_actions.dart';
+import 'package:folio/views/settings/data/database_actions.dart';
 
 class AddFile extends StatefulWidget {
   final List<TradeLog> logs;

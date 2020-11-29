@@ -13,7 +13,7 @@ class LogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: Theme.of(context).backgroundColor,
-      elevation: 0,
+      elevation: 2,
       margin: const EdgeInsets.symmetric(
         horizontal: 15,
         vertical: 5,

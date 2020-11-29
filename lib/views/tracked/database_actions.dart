@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:folio/helpers/database.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/models/stock/stock.dart';
-import 'package:folio/views/settings/import/database_actions.dart' as imp;
+import 'package:folio/views/settings/data/database_actions.dart' as imp;
 
 class DatabaseActions {
   static Future<List<TradeLog>> getStockLogs(int stockId) async {

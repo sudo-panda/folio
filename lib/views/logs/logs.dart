@@ -4,7 +4,7 @@ import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
 import 'package:folio/views/logs/database_actions.dart';
 import 'package:folio/views/logs/log_tile.dart';
-import 'package:folio/views/settings/import/add_trade_log.dart';
+import 'package:folio/views/settings/data/add_trade_log.dart';
 
 class LogsView extends StatefulWidget {
   @override

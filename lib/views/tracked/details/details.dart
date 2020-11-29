@@ -13,7 +13,7 @@ import 'package:folio/views/tracked/database_actions.dart';
 import 'package:folio/views/tracked/details/cycle_tile.dart';
 import 'package:folio/views/tracked/tracked_bottom_sheet.dart';
 import 'package:folio/views/common/text_loading_indicator.dart';
-import 'package:folio/views/settings/import/database_actions.dart' as imp;
+import 'package:folio/views/settings/data/database_actions.dart' as imp;
 
 class DetailsView extends StatefulWidget {
   final Stock stock;
@@ -32,6 +32,7 @@ class _DetailsViewState extends State<DetailsView>
   TradeCycle _computedCycle;
   TradeSummary _summary;
   Future<TradeSummary> _futureSummary;
+  Future<List<TradeLog>> _futureLogs;
 
   StreamSubscription<Latest> _latestBSEStreamSub;
   StreamSubscription<Latest> _latestNSEStreamSub;
@@ -44,7 +45,9 @@ class _DetailsViewState extends State<DetailsView>
   @override
   void initState() {
     super.initState();
+
     _stock = widget.stock;
+
     if (_stock?.bseCode != null) {
       _latestBSEStreamSub =
           StockRepository.getPeriodicLatest(_stock?.bseCode, "BSE")
@@ -54,6 +57,7 @@ class _DetailsViewState extends State<DetailsView>
         });
       });
     }
+
     if (_stock?.nseCode != null) {
       _latestNSEStreamSub =
           StockRepository.getPeriodicLatest(_stock?.nseCode, "NSE")
@@ -63,9 +67,13 @@ class _DetailsViewState extends State<DetailsView>
         });
       });
     }
+
     _summary = TradeSummary(imp.DatabaseActions.getBuyLogs(_stock.id),
         imp.DatabaseActions.getSellLogs(_stock.id));
+
     _futureSummary = _summary.calculateSummary(0);
+    _futureLogs = DatabaseActions.getStockLogs(_stock.id);
+
     _tabController = new TabController(vsync: this, length: 4);
   }
 
@@ -73,7 +81,9 @@ class _DetailsViewState extends State<DetailsView>
   void dispose() {
     _latestBSEStreamSub?.cancel();
     _latestNSEStreamSub?.cancel();
+
     _tabController.dispose();
+
     super.dispose();
   }
 
@@ -93,7 +103,7 @@ class _DetailsViewState extends State<DetailsView>
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:30.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -129,10 +139,19 @@ class _DetailsViewState extends State<DetailsView>
                                   "BSE - " + _stock?.bseCode,
                                   style: Theme.of(context).textTheme.bodyText1,
                                 ),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () async {
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                GestureDetector(
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: Theme.of(context)
+                                            .textTheme
+                                            .bodyText1
+                                            .fontSize +
+                                        3,
+                                  ),
+                                  onTap: () async {
                                     await showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
@@ -141,15 +160,6 @@ class _DetailsViewState extends State<DetailsView>
                                           updateBSECode),
                                     );
                                   },
-                                  iconSize: Theme.of(context)
-                                          .textTheme
-                                          .bodyText1
-                                          .fontSize +
-                                      3,
-                                  splashRadius: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1
-                                      .fontSize,
                                 ),
                               ],
                             ),
@@ -168,11 +178,20 @@ class _DetailsViewState extends State<DetailsView>
                                   "NSE - " + _stock?.nseCode,
                                   style: Theme.of(context).textTheme.bodyText1,
                                 ),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    showDialog(
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                GestureDetector(
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: Theme.of(context)
+                                            .textTheme
+                                            .bodyText1
+                                            .fontSize +
+                                        3,
+                                  ),
+                                  onTap: () async {
+                                    await showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
                                           _stock?.nseCode,
@@ -180,15 +199,6 @@ class _DetailsViewState extends State<DetailsView>
                                           updateNSECode),
                                     );
                                   },
-                                  iconSize: Theme.of(context)
-                                          .textTheme
-                                          .bodyText1
-                                          .fontSize +
-                                      3,
-                                  splashRadius: Theme.of(context)
-                                      .textTheme
-                                      .bodyText1
-                                      .fontSize,
                                 )
                               ],
                             ),
@@ -254,7 +264,7 @@ class _DetailsViewState extends State<DetailsView>
                           child: Text("CALCULATE NET"),
                         ),
                         Tab(
-                          child: Text("PORTFOLIO"),
+                          child: Text("REMAINING"),
                         ),
                         Tab(
                           child: Text("CYCLES"),
@@ -271,8 +281,9 @@ class _DetailsViewState extends State<DetailsView>
               ),
             ],
           ),
-          SizedBox(
-            height: 10,
+          Container(
+            height: 1,
+            color: Theme.of(context).accentColor,
           ),
           Expanded(
             child: TabBarView(
@@ -320,85 +331,88 @@ class _DetailsViewState extends State<DetailsView>
                         children: [
                           Form(
                             key: _formKey,
-                            child: Container(
-                              decoration: BoxDecoration(
+                            child: Card(
+                              color: Theme.of(context).backgroundColor,
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                color: Theme.of(context).backgroundColor,
                               ),
-                              margin: EdgeInsets.symmetric(horizontal: 20),
-                              padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
-                              child: Column(
-                                children: [
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Qty",
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 15),
-                                        helperText: "Sell Qty"),
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(
-                                          RegExp(r'[0-9]')),
-                                    ],
-                                    validator: (value) {
-                                      if (value.isEmpty) {
-                                        return 'Required';
-                                      } else if (int.parse(value) >
-                                          _stock.qty) {
-                                        return 'Too High!';
-                                      }
-                                      return null;
-                                    },
-                                    controller: _qtyController,
-                                  ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  TextFormField(
-                                    decoration: InputDecoration(
-                                        labelText: "Rate",
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 15),
-                                        helperText: "Sell Rate"),
-                                    keyboardType:
-                                        TextInputType.numberWithOptions(
-                                            decimal: true),
-                                    validator: (value) {
-                                      if (value.isEmpty ||
-                                          RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
-                                              .hasMatch(value)) {
+                              elevation: 2,
+                              margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(20, 30, 20, 10),
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      decoration: InputDecoration(
+                                          labelText: "Qty",
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 15),
+                                          helperText: "Sell Qty"),
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(
+                                            RegExp(r'[0-9]')),
+                                      ],
+                                      validator: (value) {
+                                        if (value.isEmpty) {
+                                          return 'Required';
+                                        } else if (int.parse(value) >
+                                            _stock.qty) {
+                                          return 'Too High!';
+                                        }
                                         return null;
-                                      }
-                                      return "Enter valid rate";
-                                    },
-                                    controller: _rateController,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Spacer(),
-                                      FlatButton(
-                                        child: Text("Calculate"),
-                                        onPressed: () {
-                                          if (_formKey.currentState
-                                              .validate()) {
-                                            int qty =
-                                                int.parse(_qtyController.text);
-                                            double rate =
-                                                _rateController.text.isEmpty
-                                                    ? _stock?.lastValue
-                                                    : double.parse(
-                                                        _rateController.text);
-                                            var cycle = _summary.computeCycle(
-                                                qty, rate);
-                                            setState(() {
-                                              _computedCycle = cycle; //TODO
-                                            });
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      },
+                                      controller: _qtyController,
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    TextFormField(
+                                      decoration: InputDecoration(
+                                          labelText: "Rate",
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 15),
+                                          helperText: "Sell Rate"),
+                                      keyboardType:
+                                          TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      validator: (value) {
+                                        if (value.isEmpty ||
+                                            RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
+                                                .hasMatch(value)) {
+                                          return null;
+                                        }
+                                        return "Enter valid rate";
+                                      },
+                                      controller: _rateController,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Spacer(),
+                                        FlatButton(
+                                          child: Text("Calculate"),
+                                          onPressed: () {
+                                            if (_formKey.currentState
+                                                .validate()) {
+                                              int qty = int.parse(
+                                                  _qtyController.text);
+                                              double rate =
+                                                  _rateController.text.isEmpty
+                                                      ? _stock?.lastValue
+                                                      : double.parse(
+                                                          _rateController.text);
+                                              var cycle = _summary.computeCycle(
+                                                  qty, rate);
+                                              setState(() {
+                                                _computedCycle = cycle;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -417,7 +431,8 @@ class _DetailsViewState extends State<DetailsView>
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
                             child: SizedBox(
                               width: 50,
                               height: 50,
@@ -480,7 +495,8 @@ class _DetailsViewState extends State<DetailsView>
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
                             child: SizedBox(
                               width: 50,
                               height: 50,
@@ -536,13 +552,14 @@ class _DetailsViewState extends State<DetailsView>
                   },
                 ),
                 FutureBuilder(
-                  future: DatabaseActions.getStockLogs(_stock.id),
+                  future: _futureLogs,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Center(
+                          Padding(
+                            padding: const EdgeInsets.all(30.0),
                             child: SizedBox(
                               width: 50,
                               height: 50,
