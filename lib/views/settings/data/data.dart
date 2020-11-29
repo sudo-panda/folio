@@ -4,12 +4,15 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:folio/models/database/trade_log.dart';
+import 'package:intl/intl.dart';
 
 import 'package:folio/views/settings/data/add_file.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
 import 'package:folio/views/settings/data/database_actions.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ImportRoute extends StatelessWidget {
   @override
@@ -45,11 +48,16 @@ class ImportArea extends StatefulWidget {
 
 class _ImportAreaState extends State<ImportArea> {
   bool _isButtonEnabled;
+  bool _isImporting;
+  bool _isExporting;
+  final DateFormat _fileFormatter = DateFormat('folio-y-M-d-H-m-s');
 
   @override
   void initState() {
     super.initState();
     _isButtonEnabled = true;
+    _isImporting = false;
+    _isExporting = false;
   }
 
   @override
@@ -73,17 +81,17 @@ class _ImportAreaState extends State<ImportArea> {
                 ),
                 ListTile(
                   title: Text("Import File"),
-                  trailing: _isButtonEnabled
-                      ? Icon(
-                          Icons.folder_open_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        )
-                      : SizedBox(
+                  trailing: _isImporting
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 1,
                           ),
+                        )
+                      : Icon(
+                          Icons.folder_open_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                   onTap: _isButtonEnabled ? importLogs : null,
                 ),
@@ -144,10 +152,18 @@ class _ImportAreaState extends State<ImportArea> {
                 ),
                 ListTile(
                   title: Text("Export to CSV"),
-                  trailing: Icon(
-                    Icons.download_outlined,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
+                  trailing: _isExporting
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1,
+                          ),
+                        )
+                      : Icon(
+                          Icons.download_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                   onTap: _isButtonEnabled ? exportLogs : null,
                 ),
                 Divider(),
@@ -279,7 +295,8 @@ class _ImportAreaState extends State<ImportArea> {
         log("data.importLogs() => Error in reading file\n " + e.toString());
       }
 
-      var logs;
+      List<TradeLog> logs;
+      
       try {
         switch (result.files.first.extension) {
           case "csv":
@@ -311,5 +328,29 @@ class _ImportAreaState extends State<ImportArea> {
     });
   }
 
-  void exportLogs() async {}
+  void exportLogs() async {
+    setState(() {
+      _isButtonEnabled = false;
+      _isExporting = true;
+    });
+
+    if (!await Permission.storage.status.isGranted) {
+      await Permission.storage.request();
+    }
+
+    String dir = await FilePicker.platform.getDirectoryPath();
+    if (dir != null) {
+      String csv = await DatabaseActions.getTradesCSV();
+
+      String fileName = _fileFormatter.format(DateTime.now());
+      File file = File('$dir/$fileName.csv');
+
+      file.writeAsString(csv);
+    }
+
+    setState(() {
+      _isButtonEnabled = true;
+      _isExporting = false;
+    });
+  }
 }

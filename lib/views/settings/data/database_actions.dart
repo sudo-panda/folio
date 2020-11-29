@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:csv/csv.dart';
 import 'package:folio/helpers/database.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/state/globals.dart';
@@ -393,65 +394,63 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> parseCSVFile(String file) async {
-    Document parsedHTML = html.parse(file);
-    List<String> headers = [];
-
-    for (var cell in parsedHTML
-        .querySelector("#grdViewTradeDetail")
-        .querySelectorAll("tr")
-        .first
-        .querySelectorAll("th")) {
-      headers.add(cell.innerHtml);
-    }
+    List<List<dynamic>> trades = const CsvToListConverter().convert(file);
 
     List<TradeLog> logs = [];
 
-    for (var row in parsedHTML
-        .querySelector("#grdViewTradeDetail")
-        .querySelectorAll("tr")
-        .skip(1)) {
+    for (var row in trades.skip(1)) {
       DateTime date;
-      String exchange, code, scripCode, scripName;
-      int buyQty = 0, sellQty = 0;
-      double buyRate = 0, sellRate = 0;
+      String exchange, code, bseCode, nseCode;
+      int qty = 0;
+      double rate = 0;
+      bool bought;
 
       int i = 0;
-      for (var cell in row.querySelectorAll("td")) {
-        switch (headers[i]) {
+      for (var element in row) {
+        switch (trades.first[i]) {
           case "Date":
             date = DateTime.utc(
-                int.parse(cell.innerHtml
-                    .substring(cell.innerHtml.lastIndexOf('/') + 1)),
-                int.parse(cell.innerHtml.substring(
-                    cell.innerHtml.indexOf('/') + 1,
-                    cell.innerHtml.lastIndexOf('/'))),
-                int.parse(
-                    cell.innerHtml.substring(0, cell.innerHtml.indexOf('/'))));
+              int.parse(
+                element.substring(
+                  0,
+                  element.indexOf('-'),
+                ),
+              ),
+              int.parse(
+                element.substring(
+                  element.indexOf('-') + 1,
+                  element.lastIndexOf('-'),
+                ),
+              ),
+              int.parse(
+                element.substring(element.lastIndexOf('-') + 1),
+              ),
+            );
             break;
-          case "Exch":
-            exchange = cell.innerHtml.trim();
+          case "Exchange":
+            exchange = element;
             break;
-          case "Scrip Code":
-            scripCode = cell.innerHtml.substring(1).trim();
+          case "BSE Code":
+            bseCode = element;
             break;
-          case "Scrip Name":
-            scripName = html
-                .parse(html.parse(cell.innerHtml).body.text)
-                .documentElement
-                .text
-                .trim();
+          case "NSE Code":
+            nseCode = element;
             break;
-          case "Buy Qty":
-            buyQty = int.parse(cell.innerHtml.trim());
+          case "Quantity":
+            qty = int.parse(element);
             break;
-          case "Sold Qty":
-            sellQty = int.parse(cell.innerHtml.trim());
+          case "Rate":
+            rate = double.parse(element);
             break;
-          case "Buy Rate":
-            buyRate = double.parse(cell.innerHtml.trim());
-            break;
-          case "Sold Rate":
-            sellRate = double.parse(cell.innerHtml.trim());
+          case "BUY/SELL":
+            switch (element) {
+              case "BUY":
+                bought = true;
+                break;
+              case "SELL":
+                bought = false;
+                break;
+            }
             break;
           default:
             break;
@@ -460,19 +459,17 @@ class DatabaseActions {
       }
       switch (exchange) {
         case "BSE":
-          code = scripCode;
+          code = bseCode;
           break;
         case "NSE":
-          code = scripName;
+          code = nseCode;
           break;
       }
-      int id =
-          await DatabaseActions.getRowIDAfterSettingCodes(scripCode, scripName);
-      if (buyQty > 0)
-        logs.add(TradeLog(date, id, code, exchange, true, buyQty, buyRate));
 
-      if (sellQty > 0)
-        logs.add(TradeLog(date, id, code, exchange, false, sellQty, sellRate));
+      int id =
+          await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
+
+      logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
     }
 
     return logs;
@@ -509,6 +506,49 @@ class DatabaseActions {
       }
       return value;
     });
+  }
+
+  static Future<String> getTradesCSV() async {
+    List<Map> tuples = await Db().getRawQuery("SELECT * "
+        "FROM ${Db.tblTradeLog} T "
+        "LEFT JOIN ${Db.tblPortfolio} P "
+        "ON T.${Db.colCode} = P.${Db.colBSECode} "
+        "WHERE "
+        "T.${Db.colExch} = 'BSE' "
+        "UNION "
+        "SELECT * "
+        "FROM ${Db.tblTradeLog} T "
+        "LEFT JOIN ${Db.tblPortfolio} P "
+        "ON T.${Db.colCode} = P.${Db.colNSECode} "
+        "WHERE "
+        "T.${Db.colExch} = 'NSE' "
+        "ORDER BY ${Db.colDate} ASC, ${Db.colCode} ASC");
+
+    List<List> trades = [
+      [
+        "Date",
+        "BSE Code",
+        "NSE Code",
+        "Exchange",
+        "BUY/SELL",
+        "Quantity",
+        "Rate"
+      ]
+    ];
+
+    tuples.forEach((element) {
+      trades.add([
+        element[Db.colDate],
+        element[Db.colBSECode],
+        element[Db.colNSECode],
+        element[Db.colExch],
+        (element[Db.colBought] == 1) ? "BUY" : "SELL",
+        element[Db.colQty],
+        element[Db.colRate],
+      ]);
+    });
+
+    return const ListToCsvConverter().convert(trades, delimitAllFields: true);
   }
 
   static void deleteDbThenInit() {
