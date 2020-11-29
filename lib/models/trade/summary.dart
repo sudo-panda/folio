@@ -48,6 +48,7 @@ class TradeSummary {
 
     portfolio = [];
     cycles = [];
+    incorrect = false;
 
     HeapPriorityQueue pq = HeapPriorityQueue((t1, t2) {
       return t1.rate > t2.rate ? 1 : -1;
@@ -69,7 +70,7 @@ class TradeSummary {
               buyLog.code,
               buyLog.exchange,
               true,
-              buyLog.qty,
+              remaining,
               buyLog.rate,
             ));
         }
@@ -83,7 +84,7 @@ class TradeSummary {
         pq.add(buyLogs[b++]);
       }
     }
-    
+
     while (s < sellLogs.length) {
       var cycle =
           TradeCycle(sellLogs[s].date, sellLogs[s].qty, sellLogs[s].rate);
@@ -97,7 +98,7 @@ class TradeSummary {
             buyLog.code,
             buyLog.exchange,
             true,
-            buyLog.qty,
+            remaining,
             buyLog.rate,
           ));
       }
