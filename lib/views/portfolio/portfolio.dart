@@ -5,7 +5,6 @@ import 'package:folio/views/common/drawer.dart';
 import 'package:folio/views/portfolio/database_actions.dart';
 import 'package:folio/views/portfolio/portfolio_tile.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
-import 'package:folio/views/settings/data/add_trade_log.dart';
 
 class PortfolioView extends StatefulWidget {
   @override

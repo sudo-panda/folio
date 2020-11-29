@@ -1,9 +1,7 @@
 import 'package:folio/models/database/portfolio.dart';
 import 'package:folio/views/tracked/details/details.dart';
-import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
-import 'package:folio/models/database/trade_log.dart';
 
 class PortfolioTile extends StatelessWidget {
   final Portfolio _portfolio;

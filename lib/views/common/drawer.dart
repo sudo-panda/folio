@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:folio/helpers/database.dart';
 import 'package:folio/state/app_state.dart';
 import 'package:folio/views/settings/drive/drive.dart';
 import 'package:folio/views/settings/data/data.dart';

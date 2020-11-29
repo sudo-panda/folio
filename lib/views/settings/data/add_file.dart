@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/views/logs/log_tile.dart';
