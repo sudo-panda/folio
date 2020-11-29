@@ -1,6 +1,15 @@
-## User Experience Enhancements
+## Bug Fixes
 
-- Huge UI overhaul
-- Stocks bought from one exchange and sold in another can be recognised
-- Trade logs can also be seen along with tracked stocks
-- Logs of individual stocks can be seen in the logs tab of tracked stocks
+- Fixed logs of tracked stocks refreshing periodically
+- Fixed the portfolio calculation bug
+- Fixed the summary calculation bug
+
+## Enhancements
+
+- Added a button to export all logs into a CSV file
+- Added support for imprting CSV files
+
+## UI improvements
+
+- Added a new Portfolio view which shows quantity, msr, esr of all stocks
+- Changed scaffold background color and other minor changes
