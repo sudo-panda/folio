@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:folio/views/settings/data/add_file.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
-import 'package:folio/views/settings/data/database_actions.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 

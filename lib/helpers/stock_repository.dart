@@ -1,4 +1,4 @@
-import 'package:folio/helpers/database.dart';
+import 'package:folio/services/database/database.dart';
 import 'package:folio/models/stock/latest.dart';
 import 'package:folio/services/query/query_api.dart';
 
@@ -26,4 +26,6 @@ class StockRepository {
   static Future<Latest> getOnceLatest(String code, String exchange) async {
     return await QueryAPI.getCurrentData(exchange: exchange, code: code);
   }
+
+  
 }

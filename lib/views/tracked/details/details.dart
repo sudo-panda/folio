@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/models/stock/stock.dart';
 import 'package:folio/models/stock/latest.dart';
 import 'package:folio/models/trade/cycle.dart';
 import 'package:folio/models/trade/summary.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/helpers/stock_repository.dart';
 import 'package:folio/views/logs/log_tile.dart';
-import 'package:folio/views/tracked/database_actions.dart';
 import 'package:folio/views/tracked/details/cycle_tile.dart';
 import 'package:folio/views/tracked/tracked_bottom_sheet.dart';
 import 'package:folio/views/common/text_loading_indicator.dart';
-import 'package:folio/views/settings/data/database_actions.dart' as imp;
 
 class DetailsView extends StatefulWidget {
   final Stock stock;
@@ -68,8 +68,8 @@ class _DetailsViewState extends State<DetailsView>
       });
     }
 
-    _summary = TradeSummary(imp.DatabaseActions.getBuyLogs(_stock.id),
-        imp.DatabaseActions.getSellLogs(_stock.id));
+    _summary = TradeSummary(DatabaseActions.getBuyLogs(_stock.id),
+        DatabaseActions.getSellLogs(_stock.id));
 
     _futureSummary = _summary.calculateSummary(0);
     _futureLogs = DatabaseActions.getStockLogs(_stock.id);

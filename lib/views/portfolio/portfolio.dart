@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:folio/models/database/portfolio.dart';
 import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
-import 'package:folio/views/portfolio/database_actions.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/views/portfolio/portfolio_tile.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 

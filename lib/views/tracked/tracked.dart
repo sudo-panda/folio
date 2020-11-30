@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:folio/models/stock/stock.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
-import 'package:folio/views/tracked/database_actions.dart';
 import 'package:folio/views/tracked/tracked_list.dart';
 
 class TrackedView extends StatefulWidget {

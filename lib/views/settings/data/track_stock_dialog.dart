@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:folio/views/tracked/database_actions.dart';
+
+import 'package:folio/helpers/database_actions.dart';
 
 class TrackStockDialog extends StatefulWidget {
   @override

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:folio/helpers/database.dart';
+import 'package:folio/services/database/database.dart';
 import 'package:folio/services/google_api/google_auth_client.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/drive/v3.dart' as drive;

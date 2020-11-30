@@ -1,4 +1,4 @@
-import 'package:folio/helpers/database.dart';
+import 'package:folio/services/database/database.dart';
 
 class Portfolio {
   int rowid;

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:folio/assets/folio_icons.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/helpers/stock_repository.dart';
 import 'package:folio/models/stock/stock.dart';
 import 'package:folio/views/common/text_loading_indicator.dart';
-import 'package:folio/views/tracked/database_actions.dart';
 import 'package:folio/views/tracked/details/details.dart';
 
 class TrackedBottomSheet extends StatefulWidget {
