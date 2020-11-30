@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:csv/csv_settings_autodetection.dart';
 import 'package:folio/services/database/database.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/models/database/portfolio.dart';
@@ -179,6 +180,13 @@ class DatabaseActions {
 
       s++;
     }
+    print(s.toString() +
+        " " +
+        sellLogs.length.toString() +
+        "\t" +
+        b.toString() +
+        " " +
+        buyLogs.length.toString());
 
     qty = 0;
     msr = 0;
@@ -413,7 +421,9 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> parseCSVFile(String file) async {
-    List<List<dynamic>> trades = const CsvToListConverter().convert(file);
+    var detector = FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
+    List<List<dynamic>> trades =
+        const CsvToListConverter().convert(file, csvSettingsDetector: detector);
 
     List<TradeLog> logs = [];
 
@@ -487,6 +497,7 @@ class DatabaseActions {
 
       int id =
           await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
+
       if (qty > 0)
         logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
     }
@@ -559,7 +570,7 @@ class DatabaseActions {
         "Rate"
       ]
     ];
-    
+
     tuples.forEach((element) {
       trades.add([
         element[Db.colDate],
