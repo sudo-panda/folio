@@ -529,7 +529,7 @@ class DatabaseActions {
 
   static Future<String> getTradesCSV() async {
     List<Map> tuples = await Db().getRawQuery(""
-        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colBSECode}, "
+        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colNSECode}, "
         "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
         "${Db.colRate} "
         "FROM ${Db.tblTradeLog} T "
@@ -538,7 +538,7 @@ class DatabaseActions {
         "WHERE "
         "T.${Db.colExch} = 'BSE' "
         "UNION "
-        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colBSECode}, "
+        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colNSECode}, "
         "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
         "${Db.colRate} "
         "FROM ${Db.tblTradeLog} T "
