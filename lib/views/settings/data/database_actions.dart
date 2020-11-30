@@ -431,10 +431,10 @@ class DatabaseActions {
             exchange = element;
             break;
           case "BSE Code":
-            bseCode = element;
+            bseCode = element == "null" ? null : element;
             break;
           case "NSE Code":
-            nseCode = element;
+            nseCode = element == "null" ? null : element;
             break;
           case "Quantity":
             qty = int.parse(element);
@@ -468,8 +468,8 @@ class DatabaseActions {
 
       int id =
           await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
-
-      logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
+      if (qty > 0)
+        logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
     }
 
     return logs;
@@ -509,20 +509,25 @@ class DatabaseActions {
   }
 
   static Future<String> getTradesCSV() async {
-    List<Map> tuples = await Db().getRawQuery("SELECT * "
+    List<Map> tuples = await Db().getRawQuery(""
+        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colBSECode}, "
+        "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
+        "${Db.colRate} "
         "FROM ${Db.tblTradeLog} T "
         "LEFT JOIN ${Db.tblPortfolio} P "
         "ON T.${Db.colCode} = P.${Db.colBSECode} "
         "WHERE "
         "T.${Db.colExch} = 'BSE' "
         "UNION "
-        "SELECT * "
+        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colBSECode}, "
+        "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
+        "${Db.colRate} "
         "FROM ${Db.tblTradeLog} T "
         "LEFT JOIN ${Db.tblPortfolio} P "
         "ON T.${Db.colCode} = P.${Db.colNSECode} "
         "WHERE "
         "T.${Db.colExch} = 'NSE' "
-        "ORDER BY ${Db.colDate} ASC, ${Db.colCode} ASC");
+        "ORDER BY ${Db.colDate} ASC");
 
     List<List> trades = [
       [
@@ -535,7 +540,7 @@ class DatabaseActions {
         "Rate"
       ]
     ];
-
+    
     tuples.forEach((element) {
       trades.add([
         element[Db.colDate],
