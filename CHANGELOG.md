@@ -1,3 +1,3 @@
 ## Bug Fixes
 
-- Fixed wrong qty bug in exporting CSV
+- Minor bug fixes
