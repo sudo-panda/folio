@@ -177,16 +177,8 @@ class DatabaseActions {
       // Uncomment if you want overall profit to be greater than requiredProfit
       totalProfitDifference =
           totalProfitDifference > 0 ? 0 : totalProfitDifference;
-
       s++;
     }
-    print(s.toString() +
-        " " +
-        sellLogs.length.toString() +
-        "\t" +
-        b.toString() +
-        " " +
-        buyLogs.length.toString());
 
     qty = 0;
     msr = 0;
@@ -516,12 +508,12 @@ class DatabaseActions {
         }
         try {
           await txn.insert(Db.tblTradeLog, log.toDbTuple());
+          updateLater.add(log.id);
           await txn.insert(Db.tblTracked, {
             Db.colCode: log.code,
             Db.colExch: log.exchange,
             Db.colPinned: 0,
           });
-          updateLater.add(log.id);
         } on DatabaseException catch (e) {
           if (e.isUniqueConstraintError()) {
             continue;
