@@ -50,7 +50,7 @@ class _ImportAreaState extends State<ImportArea> {
   bool _isButtonEnabled;
   bool _isImporting;
   bool _isExporting;
-  final DateFormat _fileFormatter = DateFormat('folio-y-M-d-H-m-s');
+  final DateFormat _fileFormatter = DateFormat('folio-yyyy-MMM-dd-HH-mm-ss');
 
   @override
   void initState() {

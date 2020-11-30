@@ -45,7 +45,7 @@ class _DriveAreaState extends State<DriveArea> {
   bool _isRestoring;
   bool _isDeleting;
   signIn.GoogleSignInAccount account;
-  final DateFormat _fileFormatter = DateFormat('folio-y-M-d-H-m-s');
+  final DateFormat _fileFormatter = DateFormat('folio-yyyy-MMM-dd-HH-mm-ss');
   signIn.GoogleSignIn googleSignIn;
 
   @override
