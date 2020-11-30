@@ -129,7 +129,7 @@ class PortfolioTile extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    _portfolio?.esr?.toStringAsFixed(2) ?? "N/A",
+                    _portfolio?.msr?.toStringAsFixed(2) ?? "N/A",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
