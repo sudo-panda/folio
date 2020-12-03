@@ -198,7 +198,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                   ),
                   MapTile(
                     name: "NET",
-                    value: _stock?.netPerStock?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock?.netAmount?.toStringAsFixed(2) ?? "N/A",
                   ),
                   MapTile(
                     name: "NET/STK",
