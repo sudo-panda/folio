@@ -46,13 +46,11 @@ class Stock {
 
   double get netPerStock => lastValue == null || msr == null
       ? null
-      : ((lastValue - msr) * (1 - Globals.brokerage)).abs();
+      : ((lastValue - msr) * (1 - Globals.brokerage));
 
   String get percentNet => msr == null || msr == 0 || netPerStock == null
       ? null
       : (netPerStock / msr).toStringAsFixed(2);
-
-  int get netSign => netPerStock?.sign?.round() ?? 0;
 
   bool get pinned => _tracked.pinned;
 
