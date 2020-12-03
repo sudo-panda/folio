@@ -452,16 +452,16 @@ class DatabaseActions {
             exchange = element;
             break;
           case "BSE Code":
-            bseCode = element == "null" ? null : element;
+            bseCode = element.toString() == "null" ? null : element.toString();
             break;
           case "NSE Code":
-            nseCode = element == "null" ? null : element;
+            nseCode = element.toString() == "null" ? null : element.toString();
             break;
           case "Quantity":
-            qty = int.parse(element);
+            qty = int.parse(element.toString());
             break;
           case "Rate":
-            rate = double.parse(element);
+            rate = double.parse(element.toString());
             break;
           case "BUY/SELL":
             switch (element) {
@@ -486,12 +486,19 @@ class DatabaseActions {
           code = nseCode;
           break;
       }
+      print(bseCode);
+      print(nseCode);
+      print("");
 
-      int id =
-          await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
+      try {
+        int id =
+            await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
 
-      if (qty > 0)
-        logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
+        if (qty > 0)
+          logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
+      } catch (e) {
+        dev.log("parseCSVFile() => \n"+e.toString());
+      }
     }
 
     return logs;
