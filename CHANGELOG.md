@@ -1,3 +1,3 @@
-## Bug Fixes
+## Add support for new SBI format
 
-- Minor bug fixes
+Also update flutter packages
