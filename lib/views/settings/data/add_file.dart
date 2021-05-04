@@ -25,16 +25,18 @@ class _AddFileState extends State<AddFile> {
             icon: Icon(Icons.check),
             onPressed: () async {
               try {
-                await DatabaseActions.addTradeLogs(widget.logs);
+                if (widget.logs != null) {
+                  await DatabaseActions.addTradeLogs(widget.logs);
+                }
                 Navigator.pop(context);
               } catch (e) {
                 await showDialog(
                   context: context,
                   builder: (context) {
                     return AlertDialog(
-                      title: Text("Couldn't add!"),
+                      title: Text("Couldn't import logs!"),
                       actions: [
-                        FlatButton(
+                        TextButton(
                           child: Text("OK"),
                           onPressed: () {
                             Navigator.pop(context);
@@ -49,23 +51,27 @@ class _AddFileState extends State<AddFile> {
           )
         ],
       ),
-      body: ListView.builder(
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          return LogTile(widget.logs[index]);
-        },
-        itemCount: widget.logs.length,
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Text(
-            "Total: ${widget.logs.length}",
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headline6,
-          ),
-        ),
-      ),
+      body: widget.logs != null
+          ? ListView.builder(
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                return LogTile(widget.logs[index]);
+              },
+              itemCount: widget.logs.length,
+            )
+          : Center(child: Text("Sorry couldn't parse the file.", style: Theme.of(context).textTheme.subtitle1),),
+      bottomNavigationBar: widget.logs != null
+          ? BottomAppBar(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  "Total: ${widget.logs?.length}",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headline6,
+                ),
+              ),
+            )
+          : BottomAppBar(),
     );
   }
 }

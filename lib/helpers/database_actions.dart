@@ -330,20 +330,21 @@ class DatabaseActions {
     Document parsedHTML = html.parse(file);
     List<String> headers = [];
 
-    for (var cell in parsedHTML
-        .querySelector("#grdViewTradeDetail")
-        .querySelectorAll("tr")
-        .first
-        .querySelectorAll("th")) {
+    // dev.log(parsedHTML.outerHtml);
+
+    Element table = parsedHTML.querySelector("#grdViewTradeDetail");
+    // if (table == null)
+    //   table = parsedHTML.querySelector("#grdViewTradeDetail_old");
+    if (table == null) return null;
+
+    for (var cell
+        in table.querySelectorAll("tr").first.querySelectorAll("th")) {
       headers.add(cell.innerHtml);
     }
 
     List<TradeLog> logs = [];
 
-    for (var row in parsedHTML
-        .querySelector("#grdViewTradeDetail")
-        .querySelectorAll("tr")
-        .skip(1)) {
+    for (var row in table.querySelectorAll("tr").skip(1)) {
       DateTime date;
       String exchange, code, scripCode, scripName;
       int buyQty = 0, sellQty = 0;
@@ -392,6 +393,7 @@ class DatabaseActions {
         }
         i++;
       }
+
       switch (exchange) {
         case "BSE":
           code = scripCode;
@@ -399,7 +401,12 @@ class DatabaseActions {
         case "NSE":
           code = scripName;
           break;
+        default:
+          code = null;
       }
+
+      if (code == null) continue;
+
       int id =
           await DatabaseActions.getRowIDAfterSettingCodes(scripCode, scripName);
       if (buyQty > 0)
@@ -497,7 +504,7 @@ class DatabaseActions {
         if (qty > 0)
           logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
       } catch (e) {
-        dev.log("parseCSVFile() => \n"+e.toString());
+        dev.log("parseCSVFile() => \n" + e.toString());
       }
     }
 
