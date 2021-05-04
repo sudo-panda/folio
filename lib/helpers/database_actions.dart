@@ -333,8 +333,8 @@ class DatabaseActions {
     // dev.log(parsedHTML.outerHtml);
 
     Element table = parsedHTML.querySelector("#grdViewTradeDetail");
-    // if (table == null)
-    //   table = parsedHTML.querySelector("#grdViewTradeDetail_old");
+    if (table == null)
+      table = parsedHTML.querySelector("#grdViewTradeDetail_old");
     if (table == null) return null;
 
     for (var cell
