@@ -327,14 +327,19 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> parseSBIFile(String file) async {
+    int mode = 0;
     Document parsedHTML = html.parse(file);
     List<String> headers = [];
 
     // dev.log(parsedHTML.outerHtml);
 
     Element table = parsedHTML.querySelector("#grdViewTradeDetail");
-    if (table == null)
+
+    if (table == null) {
       table = parsedHTML.querySelector("#grdViewTradeDetail_old");
+      mode = 1;
+    }
+
     if (table == null) return null;
 
     for (var cell
@@ -367,7 +372,8 @@ class DatabaseActions {
             exchange = cell.innerHtml.trim();
             break;
           case "Scrip Code":
-            scripCode = cell.innerHtml.substring(1).trim();
+            scripCode = cell.innerHtml.trim();
+            if (scripCode.startsWith("E")) scripCode = scripCode.substring(1);
             break;
           case "Scrip Name":
             scripName = html
