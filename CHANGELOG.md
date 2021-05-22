@@ -1,3 +1,3 @@
-## Add support for new SBI format
+## Minor bug fix
 
-Also update flutter packages
+- Fixed scrip code import issue
