@@ -14,7 +14,7 @@ import 'package:csv/csv.dart';
 
 class DatabaseActions {
   static Future<List<TradeLog>> getAllLogs() async {
-    List<Map> tuples = await Db()
+    List<Map<String, dynamic>> tuples = await Db()
         .getOrdered(Db.tblTradeLog, '${Db.colDate} DESC, ${Db.colCode} ASC');
 
     List<TradeLog> logs = [];
@@ -23,7 +23,7 @@ class DatabaseActions {
   }
 
   static Future<List<Portfolio>> getAllPortfolios() async {
-    List<Map> tuples = await Db().getOrdered(
+    List<Map<String, dynamic>> tuples = await Db().getOrdered(
         Db.tblPortfolio, '${Db.colNSECode} DESC, ${Db.colBSECode} DESC');
 
     List<Portfolio> portfolio = [];
@@ -31,8 +31,8 @@ class DatabaseActions {
     return portfolio;
   }
 
-  static Future<DateTime> getRecentDate() async {
-    List<Map> tuples = await Db().getLimitedOrdered(
+  static Future<DateTime?> getRecentDate() async {
+    List<Map<String, dynamic>> tuples = await Db().getLimitedOrdered(
       Db.tblTradeLog,
       1,
       '${Db.colDate} DESC',
@@ -49,7 +49,7 @@ class DatabaseActions {
     int qty,
     double rate,
   ) async {
-    String where, codeCol;
+    String where = "", codeCol = "";
     if (exchange == "BSE") {
       where = "${Db.colBSECode} = ?";
       codeCol = Db.colBSECode;
@@ -103,9 +103,9 @@ class DatabaseActions {
     var buyLogs = await DatabaseActions.getBuyLogs(rowID);
     var sellLogs = await DatabaseActions.getSellLogs(rowID);
 
-    int qty;
-    double msr;
-    double esr;
+    int qty = 0;
+    double? msr;
+    double? esr;
 
     int b = 0, s = 0;
     double totalNet = 0, totalProfitDifference = 0;
@@ -235,7 +235,7 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> getBuyLogs(int stockID) async {
-    List<Map> tuples = await Db().getOrderedQuery(
+    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
       Db.tblTradeLog,
       '${Db.colBought} = ? and ${Db.colStockID} = ?',
       [1, stockID],
@@ -250,7 +250,7 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> getSellLogs(int stockID) async {
-    List<Map> tuples = await Db().getOrderedQuery(
+    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
       Db.tblTradeLog,
       '${Db.colBought} = ? and ${Db.colStockID} = ?',
       [0, stockID],
@@ -264,7 +264,7 @@ class DatabaseActions {
     return sellLogs;
   }
 
-  static Future<int> getRowIDAfterSettingCodes(String bseCode, nseCode) async {
+  static Future<int> getRowIDAfterSettingCodes(String? bseCode, String? nseCode) async {
     List<Map> tuples = await Db().getQuery(Db.tblPortfolio,
         '${Db.colBSECode} = ? or ${Db.colNSECode} = ?', [bseCode, nseCode]);
     if (tuples.length == 0) {
@@ -307,7 +307,7 @@ class DatabaseActions {
   }
 
   static Future<bool> linkCodes(Map<String, String> codes) async {
-    int id = await getRowIDAfterSettingCodes(codes["BSE"], codes["NSE"]);
+    int id = await getRowIDAfterSettingCodes(codes["BSE"]!, codes["NSE"]);
 
     bool res = await Db().updateConditionally(
       Db.tblTradeLog,
@@ -326,14 +326,14 @@ class DatabaseActions {
     return await updatePortfolioFigures(id);
   }
 
-  static Future<List<TradeLog>> parseSBIFile(String file) async {
+  static Future<List<TradeLog>?> parseSBIFile(String file) async {
     int mode = 0;
     Document parsedHTML = html.parse(file);
     List<String> headers = [];
 
     // dev.log(parsedHTML.outerHtml);
 
-    Element table = parsedHTML.querySelector("#grdViewTradeDetail");
+    Element? table = parsedHTML.querySelector("#grdViewTradeDetail");
 
     if (table == null) {
       table = parsedHTML.querySelector("#grdViewTradeDetail_old");
@@ -350,8 +350,9 @@ class DatabaseActions {
     List<TradeLog> logs = [];
 
     for (var row in table.querySelectorAll("tr").skip(1)) {
-      DateTime date;
-      String exchange, code, scripCode, scripName;
+      late DateTime date;
+      String exchange = "";
+      String? scripCode, scripName, code;
       int buyQty = 0, sellQty = 0;
       double buyRate = 0, sellRate = 0;
 
@@ -377,9 +378,9 @@ class DatabaseActions {
             break;
           case "Scrip Name":
             scripName = html
-                .parse(html.parse(cell.innerHtml).body.text)
+                .parse(html.parse(cell.innerHtml).body?.text)
                 .documentElement
-                .text
+                !.text
                 .trim();
             break;
           case "Buy Qty":
@@ -433,11 +434,12 @@ class DatabaseActions {
     List<TradeLog> logs = [];
 
     for (var row in trades.skip(1)) {
-      DateTime date;
-      String exchange, code, bseCode, nseCode;
+      late DateTime date;
+      String exchange = "";
+      String? code, bseCode, nseCode;
       int qty = 0;
       double rate = 0;
-      bool bought;
+      bool bought = false;
 
       int i = 0;
       for (var element in row) {
@@ -465,10 +467,10 @@ class DatabaseActions {
             exchange = element;
             break;
           case "BSE Code":
-            bseCode = element.toString() == "null" ? null : element.toString();
+            bseCode = element.toString();
             break;
           case "NSE Code":
-            nseCode = element.toString() == "null" ? null : element.toString();
+            nseCode = element.toString();
             break;
           case "Quantity":
             qty = int.parse(element.toString());
@@ -499,9 +501,8 @@ class DatabaseActions {
           code = nseCode;
           break;
       }
-      print(bseCode);
-      print(nseCode);
-      print("");
+      print("Codes:- BSE: $bseCode \t NSE: $nseCode \t Exch: $exchange \n");
+      if (code == null) continue;
 
       try {
         int id =
@@ -517,7 +518,7 @@ class DatabaseActions {
     return logs;
   }
 
-  static Future<T> addTradeLogs<T>(List<TradeLog> logs) async {
+  static Future<Object?> addTradeLogs(List<TradeLog> logs) async {
     Set updateLater = Set();
 
     return await Db().transact((txn) async {
@@ -599,7 +600,7 @@ class DatabaseActions {
   }
 
   static Future<List<TradeLog>> getStockLogs(int stockId) async {
-    List<Map> tuples = await Db().getOrderedQuery(
+    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
         Db.tblTradeLog,
         '${Db.colStockID} = ?',
         [stockId],
@@ -610,9 +611,9 @@ class DatabaseActions {
     return logs;
   }
 
-  static Future<List<Stock>> getPinnedStocks() async {
+  static Future<List<Stock>?> getPinnedStocks() async {
     try {
-      List<Map> tuples = await Db().getRawQuery("SELECT * "
+      List<Map<String, dynamic>> tuples = await Db().getRawQuery("SELECT * "
           "FROM ${Db.tblTracked} T "
           "LEFT JOIN ${Db.tblPortfolio} P "
           "ON T.${Db.colCode} = P.${Db.colBSECode} "
@@ -638,9 +639,9 @@ class DatabaseActions {
     }
   }
 
-  static Future<List<Stock>> getUnpinnedStocks() async {
+  static Future<List<Stock>?> getUnpinnedStocks() async {
     try {
-      List<Map> tuples = await Db().getRawQuery("SELECT * "
+      List<Map<String, dynamic>> tuples = await Db().getRawQuery("SELECT * "
           "FROM ${Db.tblTracked} T "
           "LEFT JOIN ${Db.tblPortfolio} P "
           "ON T.${Db.colCode} = P.${Db.colBSECode} "
@@ -694,9 +695,9 @@ class DatabaseActions {
     });
   }
 
-  static Future<T> updateCode<T>(
+  static Future<Object?> updateCode(
       String oldCode, String exch, String newCode) async {
-    String codeCol;
+    String codeCol = "";
     switch (exch) {
       case "BSE":
         codeCol = Db.colBSECode;

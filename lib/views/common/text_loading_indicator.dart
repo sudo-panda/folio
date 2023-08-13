@@ -5,8 +5,8 @@ class TextLoadingIndicator extends StatelessWidget {
   final double height;
 
   const TextLoadingIndicator({
-    @required this.width,
-    @required this.height,
+    required this.width,
+    required this.height,
   });
 
   @override
@@ -19,7 +19,7 @@ class TextLoadingIndicator extends StatelessWidget {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           minHeight: height,
           valueColor:
-              AlwaysStoppedAnimation<Color>(Theme.of(context).backgroundColor),
+              AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.background),
         ),
       ),
     );

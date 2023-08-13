@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-Future<String> searchAPIKey(String code, String exchange) async {
+Future<String?> searchAPIKey(String code, String exchange) async {
   var dio = Dio()
     ..options.headers = {
       'User-Agent'.toLowerCase():
@@ -28,7 +28,7 @@ Future<String> searchAPIKey(String code, String exchange) async {
 
     if (r.statusCode == 200) {
       var match =
-          RegExp(r'data-mid="([a-zA-Z0-9\/]*)"').firstMatch(r.data).group(1);
+          RegExp(r'data-mid="([a-zA-Z0-9\/]*)"').firstMatch(r.data!)?.group(1);
 
       return match;
     } else {

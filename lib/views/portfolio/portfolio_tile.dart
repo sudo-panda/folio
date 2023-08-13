@@ -11,7 +11,7 @@ class PortfolioTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).backgroundColor,
+      color: Theme.of(context).colorScheme.background,
       elevation: 2,
       margin: const EdgeInsets.symmetric(
         horizontal: 15,
@@ -39,8 +39,8 @@ class PortfolioTile extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                "BSE - " + _portfolio?.bseCode,
-                                style: Theme.of(context).textTheme.bodyText1,
+                                "BSE - " + (_portfolio?.bseCode)!,
+                                style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               SizedBox(
                                 width: 5,
@@ -50,15 +50,15 @@ class PortfolioTile extends StatelessWidget {
                                   Icons.edit,
                                   size: Theme.of(context)
                                           .textTheme
-                                          .bodyText1
-                                          .fontSize +
+                                          .bodyLarge
+                                          !.fontSize! +
                                       3,
                                 ),
                                 onTap: () async {
                                   await showDialog(
                                     context: context,
                                     builder: (context) => EditCodeDialog(
-                                        _portfolio?.bseCode,
+                                        _portfolio!.bseCode!,
                                         "BSE",
                                         updateBSECode),
                                   );
@@ -77,8 +77,8 @@ class PortfolioTile extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                "NSE - " + _portfolio?.nseCode,
-                                style: Theme.of(context).textTheme.bodyText1,
+                                "NSE - " + _portfolio!.nseCode,
+                                style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               SizedBox(
                                 width: 5,
@@ -88,15 +88,15 @@ class PortfolioTile extends StatelessWidget {
                                   Icons.edit,
                                   size: Theme.of(context)
                                           .textTheme
-                                          .bodyText1
-                                          .fontSize +
+                                          .bodyLarge
+                                          !.fontSize! +
                                       3,
                                 ),
                                 onTap: () {
                                   showDialog(
                                     context: context,
                                     builder: (context) => EditCodeDialog(
-                                        _portfolio?.nseCode,
+                                        _portfolio!.nseCode!,
                                         "NSE",
                                         updateNSECode),
                                   );
@@ -122,8 +122,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .headline6
-                        .copyWith(fontWeight: FontWeight.normal),
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
                 Expanded(
@@ -133,8 +133,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .headline6
-                        .copyWith(fontWeight: FontWeight.normal),
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
                 Expanded(
@@ -144,8 +144,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .headline6
-                        .copyWith(fontWeight: FontWeight.normal),
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
               ],
@@ -161,8 +161,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText1
-                        .copyWith(fontWeight: FontWeight.bold),
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
@@ -172,8 +172,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText1
-                        .copyWith(fontWeight: FontWeight.bold),
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 Expanded(
@@ -183,8 +183,8 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText1
-                        .copyWith(fontWeight: FontWeight.bold),
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],

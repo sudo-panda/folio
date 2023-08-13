@@ -17,8 +17,8 @@ class TrackedTile extends StatefulWidget {
 }
 
 class _TrackedTileState extends State<TrackedTile> {
-  Stock _stock;
-  StreamSubscription<Latest> _latestStreamSub;
+  late Stock _stock;
+  late StreamSubscription<Latest?> _latestStreamSub;
   GlobalKey _scaffold = GlobalKey();
 
   @override
@@ -26,15 +26,15 @@ class _TrackedTileState extends State<TrackedTile> {
     super.initState();
     _stock = widget.stock;
     _latestStreamSub =
-        StockRepository.getPeriodicLatest(_stock.code, _stock.exchange)
+        StockRepository.getPeriodicLatest(_stock.code!, _stock.exchange!)
             .listen((value) {
       setState(() {
-        _stock.latest = value;
+        _stock.latest = value!;
       });
     });
     if (_stock.name == null) {
-      StockRepository.getName(_stock.code, _stock.exchange).then((value) {
-        if (this.mounted) {
+      StockRepository.getName(_stock.code!, _stock.exchange!).then((value) {
+        if (this.mounted && value != null) {
           setState(() {
             _stock.name = value;
           });
@@ -56,7 +56,7 @@ class _TrackedTileState extends State<TrackedTile> {
       color: (_stock?.lastValue ?? double.negativeInfinity) >
               (_stock?.esr ?? double.infinity)
           ? Colors.lightGreen[600]
-          : Theme.of(context).backgroundColor,
+          : Theme.of(context).colorScheme.background,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -99,15 +99,15 @@ class _TrackedTileState extends State<TrackedTile> {
                         _stock == null
                             ? TextLoadingIndicator(
                                 width: 100,
-                                height: Theme.of(context)
+                                height: (Theme.of(context)
                                     .textTheme
-                                    .bodyText2
-                                    .fontSize)
+                                    .bodyMedium
+                                    ?.fontSize)!)
                             : Text(
                                 (_stock?.exchange ?? "") +
                                     " - " +
                                     (_stock?.code ?? ""),
-                                style: Theme.of(context).textTheme.bodyText2,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
                         SizedBox(
                           height: 5,
@@ -115,13 +115,13 @@ class _TrackedTileState extends State<TrackedTile> {
                         _stock?.name == null
                             ? TextLoadingIndicator(
                                 width: 200,
-                                height: Theme.of(context)
+                                height: (Theme.of(context)
                                     .textTheme
-                                    .headline6
-                                    .fontSize)
+                                    .titleLarge
+                                    ?.fontSize)!)
                             : Text(
-                                (_stock?.name == "NULL" ? "-" : _stock?.name),
-                                style: Theme.of(context).textTheme.headline6,
+                                (_stock?.name == "NULL" ? "-" : (_stock?.name)!),
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
                       ],
                     ),
@@ -136,7 +136,7 @@ class _TrackedTileState extends State<TrackedTile> {
                     vertical: 20,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryVariant,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(20),
                       bottomRight: Radius.circular(20),
@@ -151,13 +151,13 @@ class _TrackedTileState extends State<TrackedTile> {
                                 width: 70,
                                 height: Theme.of(context)
                                         .textTheme
-                                        .headline4
-                                        .fontSize +
+                                        .headlineMedium
+                                        !.fontSize! +
                                     5,
                               )
                             : Text(
                                 _stock?.lastValue?.toStringAsFixed(2) ?? "",
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                         SizedBox(
                           height: 5,
@@ -169,34 +169,34 @@ class _TrackedTileState extends State<TrackedTile> {
                             _stock?.percentChange == null
                                 ? TextLoadingIndicator(
                                     width: 30,
-                                    height: Theme.of(context)
+                                    height: (Theme.of(context)
                                         .textTheme
-                                        .bodyText1
-                                        .fontSize,
+                                        .bodyLarge
+                                        ?.fontSize)!,
                                   )
                                 : Text(
                                     "${_stock?.percentChange}%",
                                     style:
-                                        Theme.of(context).textTheme.bodyText1,
+                                        Theme.of(context).textTheme.bodyLarge,
                                   ),
                             SizedBox(width: 10),
                             _stock?.change == null
                                 ? TextLoadingIndicator(
                                     width: 40,
-                                    height: Theme.of(context)
+                                    height: (Theme.of(context)
                                         .textTheme
-                                        .bodyText1
-                                        .fontSize,
+                                        .bodyLarge
+                                        ?.fontSize)!,
                                   )
                                 : Text(
-                                    _stock?.change,
+                                    _stock!.change!,
                                     style: Theme.of(context)
                                         .textTheme
-                                        .bodyText1
-                                        .copyWith(
-                                          color: _stock?.changeSign == 1
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          color: _stock.changeSign == 1
                                               ? Colors.green
-                                              : (_stock?.changeSign == -1
+                                              : (_stock.changeSign == -1
                                                   ? Colors.red
                                                   : Theme.of(context)
                                                       .colorScheme
@@ -219,7 +219,7 @@ class _TrackedTileState extends State<TrackedTile> {
 
   void _modalBottomSheetMenu() {
     showModalBottomSheet(
-        context: _scaffold.currentContext,
+        context: (_scaffold.currentContext)!,
         builder: (builder) {
           return TrackedBottomSheet(_stock);
         });

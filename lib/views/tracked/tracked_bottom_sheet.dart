@@ -16,7 +16,7 @@ class TrackedBottomSheet extends StatefulWidget {
 }
 
 class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
-  Stock _stock;
+  late Stock _stock;
   bool _isRefreshing = true;
 
   @override
@@ -30,7 +30,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).backgroundColor,
+        color: Theme.of(context).colorScheme.background,
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(20.0),
           topRight: const Radius.circular(20.0),
@@ -85,10 +85,10 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                             });
 
                             StockRepository.getOnceLatest(
-                                    _stock.code, _stock.exchange)
+                                    _stock.code!, _stock.exchange!)
                                 .then((value) {
                               setState(() {
-                                _stock.latest = value;
+                                _stock.latest = value!;
                                 _isRefreshing = false;
                               });
                             });
@@ -107,8 +107,8 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                     splashRadius: 25.0,
                     onPressed: () {
                       DatabaseActions.updatePinned(
-                        _stock.code,
-                        _stock.exchange,
+                        _stock.code!,
+                        _stock.exchange!,
                         !_stock.pinned,
                       ).then((value) {
                         if (value) {
@@ -134,12 +134,12 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                     onPressed: () {
                       if (_stock.isVisible) {
                         DatabaseActions.deleteTracked(
-                            _stock.code, _stock.exchange);
+                            _stock.code!, _stock.exchange!);
                       } else {
                         DatabaseActions.addTracked(
-                          _stock.code,
-                          _stock.exchange,
-                          _stock.name,
+                          _stock.code!,
+                          _stock.exchange!,
+                          _stock.name!,
                           _stock.pinned,
                         );
                       }
@@ -216,12 +216,12 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                 _stock?.name == null
                     ? TextLoadingIndicator(
                         width: 200,
-                        height: Theme.of(context).textTheme.headline6.fontSize)
+                        height: Theme.of(context).textTheme.titleLarge!.fontSize!)
                     : Flexible(
                         child: Text(
-                          _stock?.name,
+                          _stock.name!,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
               ],
@@ -235,18 +235,18 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                 _stock?.exchange == null || _stock?.code == null
                     ? TextLoadingIndicator(
                         width: 100,
-                        height: Theme.of(context).textTheme.bodyText1.fontSize)
+                        height: Theme.of(context).textTheme.bodyLarge!.fontSize!)
                     : Text(
                         (_stock?.exchange ?? "") + "-" + (_stock.code ?? ""),
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                 _stock?.lastUpdated == null
                     ? TextLoadingIndicator(
                         width: 150,
-                        height: Theme.of(context).textTheme.bodyText1.fontSize)
+                        height: Theme.of(context).textTheme.bodyLarge!.fontSize!)
                     : Text(
-                        _stock?.lastUpdated,
-                        style: Theme.of(context).textTheme.bodyText1,
+                        _stock!.lastUpdated!,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
               ],
             ),
@@ -259,12 +259,10 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
 
 class MapTile extends StatelessWidget {
   const MapTile({
-    Key key,
-    @required String name,
-    @required String value,
+    required String name,
+    required String value,
   })  : _name = name,
-        _value = value,
-        super(key: key);
+        _value = value;
 
   final String _name;
   final String _value;
@@ -272,7 +270,7 @@ class MapTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).colorScheme.primaryVariant,
+      color: Theme.of(context).colorScheme.primaryContainer,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -288,11 +286,11 @@ class MapTile extends StatelessWidget {
             children: [
               Text(
                 _value,
-                style: Theme.of(context).textTheme.headline4,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
               Text(
                 _name,
-                style: Theme.of(context).textTheme.bodyText1,
+                style: Theme.of(context).textTheme.bodyLarge,
               )
             ],
           ),

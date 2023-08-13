@@ -1,13 +1,13 @@
 import 'package:folio/services/database/database.dart';
 
 class TradeLog {
-  DateTime date;
-  int id;
-  String code;
-  String exchange;
-  bool bought;
-  int qty;
-  double rate;
+  late DateTime date;
+  late int id;
+  late String code;
+  late String exchange;
+  late bool bought;
+  late int qty;
+  late double rate;
 
   TradeLog(this.date, this.id, this.code, this.exchange, this.bought, this.qty,
       this.rate);

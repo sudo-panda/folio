@@ -12,7 +12,7 @@ class LogTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).backgroundColor,
+      color: Theme.of(context).colorScheme.background,
       elevation: 2,
       margin: const EdgeInsets.symmetric(
         horizontal: 15,
@@ -57,13 +57,13 @@ class LogTile extends StatelessWidget {
                       children: [
                         Text(
                           (_tradeLog?.exchange ?? "-"),
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         Text(
                           _tradeLog?.date == null
                               ? "-"
                               : _dateFormatter.format(_tradeLog.date),
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ],
                     ),
@@ -77,8 +77,8 @@ class LogTile extends StatelessWidget {
                             (_tradeLog?.code ?? "-"),
                             style: Theme.of(context)
                                 .textTheme
-                                .headline6
-                                .copyWith(fontWeight: FontWeight.normal),
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.normal),
                           ),
                         ),
                         Expanded(
@@ -87,7 +87,7 @@ class LogTile extends StatelessWidget {
                             _tradeLog?.qty?.toString() ?? "-",
                             style: Theme.of(context)
                                 .textTheme
-                                .headline6,
+                                .titleLarge,
                           ),
                         ),
                         Expanded(
@@ -96,7 +96,7 @@ class LogTile extends StatelessWidget {
                             _tradeLog?.rate?.toStringAsFixed(2) ?? "-",
                             style: Theme.of(context)
                                 .textTheme
-                                .headline6,
+                                .titleLarge,
                           ),
                         ),
                       ],

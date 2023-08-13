@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:folio/models/stock/latest.dart';
 
 class QueryBSEAPI {
-  static Future<Latest> getCurrentData(String code) async {
+  static Future<Latest?> getCurrentData(String code) async {
     var dio = Dio()
       ..options.headers = {
         'User-Agent'.toLowerCase():
@@ -26,30 +26,24 @@ class QueryBSEAPI {
         },
       );
       if (r.statusCode == 200) {
-        var data = jsonDecode(r.data);
+        var data = jsonDecode(r.data!);
+        double currVal = double.parse(data['CurrVal']);
+        double prevClose = double.parse(data['PrevClose']);
+        double change = (currVal - prevClose);
+        double? percentChange = (prevClose == 0) ? null : ((change * 100.0) / prevClose);
+        var sign = change.sign.round();
         var ret = Latest.fromData(
             double.parse(data['CurrVal']),
-            (double.parse(data['CurrVal']) - double.parse(data['PrevClose']))
-                .abs()
-                .toStringAsFixed(2),
-            double.parse(data['PrevClose']) == 0
-                ? null
-                : (((double.parse(data['CurrVal']) -
-                                double.parse(data['PrevClose'])) *
-                            100.0) /
-                        double.parse(data['PrevClose']))
-                    .abs()
-                    .toStringAsFixed(2),
-            (double.parse(data['CurrVal']) - double.parse(data['PrevClose']))
-                .sign
-                .round(),
+            change.abs().toStringAsFixed(2),
+            percentChange?.abs().toStringAsFixed(2) ?? "-",
+            sign,
             data['CurrDate']);
         return ret;
       } else {
         log("query_bse_api.getCurrentData($code) => \n " +
             r.statusCode.toString() +
             ": " +
-            r.statusMessage);
+            (r.statusMessage ?? ""));
         return null;
       }
     } catch (e) {
@@ -58,7 +52,7 @@ class QueryBSEAPI {
     }
   }
 
-  static Future<String> getName(String code) async {
+  static Future<String?> getName(String code) async {
     var dio = Dio()
       ..options.headers = {
         'User-Agent'.toLowerCase():
@@ -77,12 +71,12 @@ class QueryBSEAPI {
         },
       );
       if (r.statusCode == 200) {
-        return jsonDecode(r.data)['Cmpname']['FullN'].toString();
+        return jsonDecode(r.data!)['Cmpname']['FullN'].toString();
       } else {
         log("query_bse_api.getName($code) => \n " +
             r.statusCode.toString() +
             ": " +
-            r.statusMessage);
+            (r.statusMessage ?? ""));
         return null;
       }
     } catch (e) {

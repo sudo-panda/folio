@@ -7,8 +7,8 @@ class AddPortfolioDialog extends StatefulWidget {
 }
 
 class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
-  TextEditingController _nseCodeCtl;
-  TextEditingController _bseCodeCtl;
+  late TextEditingController _nseCodeCtl;
+  late TextEditingController _bseCodeCtl;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -28,7 +28,7 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -43,7 +43,7 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   "Codes",
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(
@@ -56,12 +56,12 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                     ),
                     helperText: "NSE Code",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.text,
                   controller: _nseCodeCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -78,12 +78,12 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                     ),
                     helperText: "BSE Code",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.text,
                   controller: _bseCodeCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -94,27 +94,30 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Cancel"),
                       onPressed: () {
                         Navigator.pop(context);
                       },
                     ),
                     Spacer(),
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Add"),
                       onPressed: () {
-                        if (_formKey.currentState.validate()) {
+                        if (_formKey.currentState!.validate()) {
                           DatabaseActions.linkCodes({
                             'NSE': _nseCodeCtl.text,
                             'BSE': _bseCodeCtl.text,

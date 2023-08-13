@@ -8,7 +8,7 @@ class TrackStockDialog extends StatefulWidget {
 }
 
 class _TrackStockDialogState extends State<TrackStockDialog> {
-  TextEditingController _codeCtl;
+  late TextEditingController _codeCtl;
   var _exchanges = ["BSE", "NSE"];
   String _selectedExch = 'BSE';
   final _formKey = GlobalKey<FormState>();
@@ -22,13 +22,13 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
   @override
   void dispose() {
     super.dispose();
-    _codeCtl?.dispose();
+    _codeCtl.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -43,7 +43,7 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   "Add stock to tracker",
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(
@@ -56,12 +56,12 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                     ),
                     helperText: "Code",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.text,
                   controller: _codeCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -74,7 +74,7 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
-                        labelStyle: Theme.of(context).textTheme.bodyText2,
+                        labelStyle: Theme.of(context).textTheme.bodyMedium,
                         errorStyle: TextStyle(
                           color: Colors.redAccent,
                           fontSize: 16.0,
@@ -85,13 +85,13 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                       isEmpty: false,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          style: Theme.of(context).textTheme.bodyText2,
-                          dropdownColor: Theme.of(context).backgroundColor,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          dropdownColor: Theme.of(context).colorScheme.background,
                           value: _selectedExch,
                           isDense: true,
                           onChanged: (newValue) {
                             setState(() {
-                              _selectedExch = newValue;
+                              _selectedExch = newValue!;
                               state.didChange(newValue);
                             });
                           },
@@ -113,29 +113,33 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Cancel"),
                       onPressed: () {
                         Navigator.pop(context);
                       },
                     ),
                     Spacer(),
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Add"),
                       onPressed: () {
-                        if (_formKey.currentState.validate()) {
+                        if (_formKey.currentState!.validate()) {
                           DatabaseActions.addTracked(
-                                  _codeCtl.text, _selectedExch, null, false)
+                                  _codeCtl.text, _selectedExch, "", false)
                               .then(
                             (value) {
                               if (value) {

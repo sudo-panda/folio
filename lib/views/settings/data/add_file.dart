@@ -59,7 +59,7 @@ class _AddFileState extends State<AddFile> {
               },
               itemCount: widget.logs.length,
             )
-          : Center(child: Text("Sorry couldn't parse the file.", style: Theme.of(context).textTheme.subtitle1),),
+          : Center(child: Text("Sorry couldn't parse the file.", style: Theme.of(context).textTheme.titleMedium),),
       bottomNavigationBar: widget.logs != null
           ? BottomAppBar(
               child: Padding(
@@ -67,7 +67,7 @@ class _AddFileState extends State<AddFile> {
                 child: Text(
                   "Total: ${widget.logs?.length}",
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
             )

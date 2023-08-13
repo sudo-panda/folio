@@ -12,7 +12,7 @@ class LogsView extends StatefulWidget {
 }
 
 class _LogsViewState extends State<LogsView> {
-  Future<List<TradeLog>> _getLogsFuture;
+  late Future<List<TradeLog>> _getLogsFuture;
 
   @override
   void initState() {
@@ -50,13 +50,16 @@ class _LogsViewState extends State<LogsView> {
                     children: <Widget>[
                       Text(
                         "Logs",
-                        style: Theme.of(context).textTheme.headline1,
+                        style: Theme.of(context).textTheme.displayLarge,
                       ),
-                      RaisedButton(
-                        shape: CircleBorder(),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            foregroundColor: Theme.of(context).colorScheme.background,
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
+                            minimumSize: Size(88, 36),
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            shape: const CircleBorder()),
                         child: Icon(Icons.add),
-                        color: Theme.of(context).accentColor,
-                        textColor: Theme.of(context).backgroundColor,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -76,7 +79,7 @@ class _LogsViewState extends State<LogsView> {
           ),
           FutureBuilder(
             future: _getLogsFuture,
-            builder: (context, snapshot) {
+            builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState != ConnectionState.done ||
                   snapshot.hasError) {
                 return SliverToBoxAdapter(
@@ -89,7 +92,7 @@ class _LogsViewState extends State<LogsView> {
                   child: Center(
                     child: Text(
                       "No logs imported",
-                      style: Theme.of(context).textTheme.headline4,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 );

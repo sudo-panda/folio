@@ -26,7 +26,7 @@ class DriveRoute extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromWindowPadding(WindowPadding.zero, 1),
+          padding: EdgeInsets.fromViewPadding(ViewPadding.zero, 1),
           child: DriveArea(),
         ),
       ),
@@ -40,13 +40,13 @@ class DriveArea extends StatefulWidget {
 }
 
 class _DriveAreaState extends State<DriveArea> {
-  bool _isProcessing;
-  bool _isBackingUp;
-  bool _isRestoring;
-  bool _isDeleting;
-  signIn.GoogleSignInAccount account;
+  bool _isProcessing = true;
+  bool _isBackingUp = false;
+  bool _isRestoring = false;
+  bool _isDeleting = false;
+  late signIn.GoogleSignInAccount? account;
   final DateFormat _fileFormatter = DateFormat('folio-yyyy-MMM-dd-HH-mm-ss');
-  signIn.GoogleSignIn googleSignIn;
+  late signIn.GoogleSignIn googleSignIn;
 
   @override
   void initState() {
@@ -61,7 +61,7 @@ class _DriveAreaState extends State<DriveArea> {
   void login() async {
     try {
       googleSignIn = signIn.GoogleSignIn.standard(
-          scopes: [drive.DriveApi.DriveAppdataScope]);
+          scopes: [drive.DriveApi.driveAppdataScope]);
       account = await googleSignIn.signIn();
       if (account == null) throw Exception();
       setState(() {
@@ -142,8 +142,8 @@ class _DriveAreaState extends State<DriveArea> {
                       )
                     : Center(
                         child: ListTile(
-                          title: Text("Logged in as: ${account.displayName}"),
-                          subtitle: Text("${account.email}"),
+                          title: Text("Logged in as: ${account?.displayName}"),
+                          subtitle: Text("${account?.email}"),
                           trailing: IconButton(
                               icon: Icon(Icons.logout),
                               onPressed: () {
@@ -167,8 +167,8 @@ class _DriveAreaState extends State<DriveArea> {
       _isProcessing = true;
     });
 
-    final authHeaders = await account.authHeaders;
-    final authenticateClient = GoogleAuthClient(authHeaders);
+    final authHeaders = await account?.authHeaders;
+    final authenticateClient = GoogleAuthClient(authHeaders!);
     final driveApi = drive.DriveApi(authenticateClient);
 
     final path = await Db().getDbPath();
@@ -209,15 +209,15 @@ class _DriveAreaState extends State<DriveArea> {
                   border: Border.all(color: Theme.of(context).dividerColor)),
               child: FutureBuilder(
                 future: getBackups(),
-                builder: (context, snapshot) {
+                builder: (context, AsyncSnapshot snapshot) {
                   if (snapshot.hasData) {
                     return ListView.builder(
                       shrinkWrap: true,
-                      itemCount: snapshot.data.files.length,
+                      itemCount: snapshot.data?.files.length,
                       itemBuilder: (context, index) {
                         return ListTile(
                           leading: Icon(Icons.storage_outlined),
-                          title: Text("${snapshot.data.files[index].name}"),
+                          title: Text("${snapshot.data?.files[index].name}"),
                           onTap: () {
                             Navigator.pop(
                                 context, "${snapshot.data.files[index].id}");
@@ -241,11 +241,14 @@ class _DriveAreaState extends State<DriveArea> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              FlatButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(5)),
-                ),
-                color: Theme.of(context).buttonColor,
+              TextButton(
+                style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.background,
+                    minimumSize: Size(88, 36),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                    )),
                 onPressed: () {
                   Navigator.pop(context, null);
                 },
@@ -265,27 +268,29 @@ class _DriveAreaState extends State<DriveArea> {
         _isRestoring = true;
       });
 
-      final authHeaders = await account.authHeaders;
-      final authenticateClient = GoogleAuthClient(authHeaders);
+      final authHeaders = await account?.authHeaders;
+      final authenticateClient = GoogleAuthClient(authHeaders!);
       final driveApi = drive.DriveApi(authenticateClient);
 
-      drive.Media file = await driveApi.files
-          .get(id, downloadOptions: drive.DownloadOptions.FullMedia);
+      Object file = await driveApi.files
+          .get(id, downloadOptions: drive.DownloadOptions.fullMedia);
 
       final saveFile = File(await Db().getDbPath());
       List<int> dataStore = [];
-      file.stream.listen((data) {
-        dataStore.insertAll(dataStore.length, data);
-      }, onDone: () async {
-        log("Download Done");
-        saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
-          log("Written to File");
-        });
-      }, onError: (e) {
-        log("drive.showRestoreDialog() => \n " + e.toString());
-      });
+      print(file.toString());
+      // FIXME:
+      // file.stream.listen((data) {
+      //   dataStore.insertAll(dataStore.length, data);
+      // }, onDone: () async {
+      //   log("Download Done");
+      //   saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
+      //     log("Written to File");
+      //   });
+      // }, onError: (e) {
+      //   log("drive.showRestoreDialog() => \n " + e.toString());
+      // });
     }
-    
+
     setState(() {
       _isRestoring = false;
       _isProcessing = false;
@@ -314,7 +319,7 @@ class _DriveAreaState extends State<DriveArea> {
                   border: Border.all(color: Theme.of(context).dividerColor)),
               child: FutureBuilder(
                 future: getBackups(),
-                builder: (context, snapshot) {
+                builder: (context, AsyncSnapshot snapshot) {
                   if (snapshot.hasData) {
                     return ListView.builder(
                       shrinkWrap: true,
@@ -346,11 +351,14 @@ class _DriveAreaState extends State<DriveArea> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              FlatButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(5)),
-                ),
-                color: Theme.of(context).buttonColor,
+              TextButton(
+                style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.background,
+                    minimumSize: Size(88, 36),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                    )),
                 onPressed: () {
                   Navigator.pop(context, null);
                 },
@@ -370,8 +378,8 @@ class _DriveAreaState extends State<DriveArea> {
         _isDeleting = true;
       });
 
-      final authHeaders = await account.authHeaders;
-      final authenticateClient = GoogleAuthClient(authHeaders);
+      final authHeaders = await account?.authHeaders;
+      final authenticateClient = GoogleAuthClient(authHeaders!);
       final driveApi = drive.DriveApi(authenticateClient);
 
       driveApi.files.delete(id);
@@ -384,8 +392,8 @@ class _DriveAreaState extends State<DriveArea> {
   }
 
   Future<dynamic> getBackups() async {
-    final authHeaders = await account.authHeaders;
-    final authenticateClient = GoogleAuthClient(authHeaders);
+    final authHeaders = await account?.authHeaders;
+    final authenticateClient = GoogleAuthClient(authHeaders!);
     final driveApi = drive.DriveApi(authenticateClient);
     return await driveApi.files.list(spaces: 'appDataFolder');
   }

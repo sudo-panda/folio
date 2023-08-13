@@ -1,9 +1,9 @@
 class Latest {
-  double value;
-  String change;
-  String percentageChange;
-  int sign;
-  String updated;
+  double value = 0.0;
+  String change = "";
+  String percentageChange = "";
+  int sign = 0;
+  String updated = "";
 
   Latest();
 

@@ -4,14 +4,12 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:folio/models/stock/latest.dart';
 import 'package:folio/services/query/query_bse_api.dart';
-import 'package:flutter/foundation.dart';
 import 'package:folio/services/query/query_nse_api.dart';
 import 'package:folio/services/search.dart';
 
 class QueryAPI {
-  static Future<Latest> getCurrentData(
-      {@required String exchange, @required String code, String key}) async {
-    assert(exchange != null && code != null);
+  static Future<Latest?> getCurrentData(
+      {required String exchange, required String code, String? key}) async {
     switch (exchange) {
       case "BSE":
         return QueryBSEAPI.getCurrentData(code);
@@ -20,6 +18,8 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
+      if (key == null)
+        return null;
     }
 
     var dio = Dio()
@@ -37,7 +37,7 @@ class QueryAPI {
       );
 
       if (r.statusCode == 200) {
-        var data = jsonDecode(r.data.substring(4))['PriceUpdate']['entities']
+        var data = jsonDecode(r.data!.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data'];
 
         var ret = Latest.fromData(
@@ -57,7 +57,7 @@ class QueryAPI {
         log("query_api.getCurrentData($code, $exchange, $key) => \n " +
             r.statusCode.toString() +
             ": " +
-            r.statusMessage);
+            (r.statusMessage ?? ""));
         return null;
       }
     } catch (e) {
@@ -66,9 +66,8 @@ class QueryAPI {
     }
   }
 
-  static Future<String> getName(
-      {@required String exchange, @required String code, String key}) async {
-    assert(exchange != null && code != null);
+  static Future<String?> getName(
+      {required String exchange, required String code, String? key}) async {
     switch (exchange) {
       case "BSE":
         return QueryBSEAPI.getName(code);
@@ -77,6 +76,8 @@ class QueryAPI {
     }
     if (key == null) {
       key = await searchAPIKey(code, exchange);
+      if (key == null)
+        return null;
     }
 
     var dio = Dio()
@@ -94,7 +95,7 @@ class QueryAPI {
       );
 
       if (r.statusCode == 200) {
-        var ret = jsonDecode(r.data.substring(4))['PriceUpdate']['entities']
+        var ret = jsonDecode(r.data!.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data']['name']
             .toString();
         return ret;
@@ -102,7 +103,7 @@ class QueryAPI {
         log("query_api.getName($code, $exchange, $key) => \n " +
             r.statusCode.toString() +
             ": " +
-            r.statusMessage);
+            (r.statusMessage ?? ""));
         return null;
       }
     } catch (e) {
