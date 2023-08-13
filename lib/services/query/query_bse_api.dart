@@ -25,7 +25,7 @@ class QueryBSEAPI {
           "seriesid": "",
         },
       );
-      if (r.statusCode == 200) {
+      if (r.statusCode == 200 && r.data != null) {
         var data = jsonDecode(r.data!);
         double currVal = double.parse(data['CurrVal']);
         double prevClose = double.parse(data['PrevClose']);
@@ -70,7 +70,7 @@ class QueryBSEAPI {
           "seriesid": "",
         },
       );
-      if (r.statusCode == 200) {
+      if (r.statusCode == 200 && r.data != null) {
         return jsonDecode(r.data!)['Cmpname']['FullN'].toString();
       } else {
         log("query_bse_api.getName($code) => \n " +

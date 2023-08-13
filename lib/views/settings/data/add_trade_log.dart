@@ -48,46 +48,48 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
           IconButton(
             icon: Icon(Icons.check),
             onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          var res = await DatabaseActions.setTradeLog(
-                            _codeCtl.text.trim(),
-                            _selectedExch,
-                            _dateCtl.text.trim(),
-                            _isSelected[0],
-                            int.parse(_qtyCtl.text.trim()),
-                            double.parse(
-                              _rateCtl.text.trim(),
-                            ),
-                          );
-                          if (res) {
-                            Navigator.pop(context);
-                          } else {
-                            await showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text("Couldn't add!"),
-                                  actions: [
-                                    TextButton(
-                                      style: TextButton.styleFrom(
-                                          foregroundColor: Colors.black87,
-                                          minimumSize: Size(88, 36),
-                                          padding: EdgeInsets.symmetric(horizontal: 16),
-                                          shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(Radius.circular(2)),
-                                          )),
-                                      child: Text("OK"),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    )
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
-                      },
+              if (_formKey.currentState != null &&
+                  _formKey.currentState!.validate()) {
+                var res = await DatabaseActions.setTradeLog(
+                  _codeCtl.text.trim(),
+                  _selectedExch,
+                  _dateCtl.text.trim(),
+                  _isSelected[0],
+                  int.parse(_qtyCtl.text.trim()),
+                  double.parse(
+                    _rateCtl.text.trim(),
+                  ),
+                );
+                if (res) {
+                  Navigator.pop(context);
+                } else {
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text("Couldn't add!"),
+                        actions: [
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.black87,
+                                minimumSize: Size(88, 36),
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(2)),
+                                )),
+                            child: Text("OK"),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          )
+                        ],
+                      );
+                    },
+                  );
+                }
+              }
+            },
           )
         ],
       ),
@@ -141,8 +143,12 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                     });
                   },
                   isSelected: _isSelected,
-                  selectedColor: _isSelected[0] ? Colors.lightGreen[600] : Colors.redAccent,
-                  fillColor: _isSelected[0] ? Colors.lightGreen[600] : Colors.redAccent,
+                  selectedColor: _isSelected[0]
+                      ? Colors.lightGreen[600]
+                      : Colors.redAccent,
+                  fillColor: _isSelected[0]
+                      ? Colors.lightGreen[600]
+                      : Colors.redAccent,
                   borderRadius: BorderRadius.circular(40),
                 ),
               ),
@@ -186,7 +192,8 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           style: Theme.of(context).textTheme.bodyMedium,
-                          dropdownColor: Theme.of(context).colorScheme.background,
+                          dropdownColor:
+                              Theme.of(context).colorScheme.background,
                           value: _selectedExch,
                           isDense: true,
                           onChanged: (newValue) {
@@ -231,7 +238,8 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                       lastDate: DateTime(2100),
                     ))!;
 
-                    _dateCtl.text = (date?.toIso8601String()!.substring(0, 10))!;
+                    _dateCtl.text =
+                        (date?.toIso8601String()!.substring(0, 10))!;
                   },
                   controller: _dateCtl,
                   validator: (value) {
@@ -255,13 +263,13 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                   keyboardType: TextInputType.number,
                   controller: _qtyCtl,
                   validator: (value) {
-                    if (value?.trim() == "") {
-                      return "Required";
+                    if (value == null || value.trim() == "") {
+                      return "Quantity required!";
                     }
-                    if (RegExp(r"^[0-9]*?$").hasMatch(value!.trim())) {
+                    if (RegExp(r"^[0-9]*?$").hasMatch(value.trim())) {
                       return null;
                     }
-                    return "Enter valid rate";
+                    return "Enter valid quantity!";
                   },
                 ),
               ),
@@ -277,14 +285,14 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                   style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
-                    if (value?.trim() == "") {
-                      return "Required";
+                    if (value == null || value.trim() == "") {
+                      return "Rate required!";
                     }
                     if (RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
-                        .hasMatch(value!.trim())) {
+                        .hasMatch(value.trim())) {
                       return null;
                     }
-                    return "Enter valid rate";
+                    return "Enter valid rate!";
                   },
                   controller: _rateCtl,
                 ),

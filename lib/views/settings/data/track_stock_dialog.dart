@@ -61,7 +61,7 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                   keyboardType: TextInputType.text,
                   controller: _codeCtl,
                   validator: (value) {
-                    if (value!.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -90,10 +90,12 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                           value: _selectedExch,
                           isDense: true,
                           onChanged: (newValue) {
-                            setState(() {
-                              _selectedExch = newValue!;
-                              state.didChange(newValue);
-                            });
+                            if (newValue != null) {
+                              setState(() {
+                                _selectedExch = newValue;
+                                state.didChange(newValue);
+                              });
+                            }
                           },
                           items: _exchanges.map(
                             (value) {
@@ -137,7 +139,7 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                           )),
                       child: Text("Add"),
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState != null && _formKey.currentState!.validate()) {
                           DatabaseActions.addTracked(
                                   _codeCtl.text, _selectedExch, "", false)
                               .then(

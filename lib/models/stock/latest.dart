@@ -1,9 +1,9 @@
 class Latest {
-  double value = 0.0;
-  String change = "";
-  String percentageChange = "";
+  double? value;
+  String? change;
+  String? percentageChange;
   int sign = 0;
-  String updated = "";
+  String? updated;
 
   Latest();
 
@@ -13,14 +13,14 @@ class Latest {
   @override
   String toString() {
     return 'value: ' +
-        value.toStringAsFixed(2) +
+        (value?.toStringAsFixed(2) ?? "NULL") +
         '\nchange: ' +
-        change +
+        (change ?? "NULL") +
         '\npercentageChange: ' +
-        percentageChange +
+        (percentageChange ?? "NULL") +
         '\nsign: ' +
         sign.toString() +
         '\ntime: ' +
-        updated;
+        (updated ?? "NULL");
   }
 }

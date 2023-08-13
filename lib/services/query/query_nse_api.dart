@@ -68,7 +68,8 @@ class NetworkService {
       throw new Exception("Error while fetching data: " +
           statusCode.toString() +
           "\n\n" +
-          response.request!.headers.toString());
+          (response.request?.headers?.toString() ??
+              "<<< Headers  are NULL >>>"));
     }
     return res;
   }
@@ -99,7 +100,9 @@ class QueryNSEAPI {
     try {
       await session.get(uri, headers);
     } catch (e) {
-      dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
+      dev.log(
+          "query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " +
+              e.toString());
     }
 
     uri = Uri.https(
@@ -151,7 +154,9 @@ class QueryNSEAPI {
     try {
       await session.get(uri, headers);
     } catch (e) {
-      dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
+      dev.log(
+          "query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " +
+              e.toString());
     }
 
     uri = Uri.https(

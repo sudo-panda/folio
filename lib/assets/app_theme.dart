@@ -65,7 +65,8 @@ class AppTheme {
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: _darkPrimaryVariantColor),
       ),
-    ), colorScheme: ColorScheme.light(
+    ),
+    colorScheme: ColorScheme.dark(
       primary: _darkPrimaryColor,
       secondary: _iconColor,
       background: _darkBackgroundColor,

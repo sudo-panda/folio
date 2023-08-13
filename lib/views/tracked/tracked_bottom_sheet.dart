@@ -85,10 +85,10 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                             });
 
                             StockRepository.getOnceLatest(
-                                    _stock.code!, _stock.exchange!)
+                                    _stock.code, _stock.exchange)
                                 .then((value) {
                               setState(() {
-                                _stock.latest = value!;
+                                _stock.latest = value;
                                 _isRefreshing = false;
                               });
                             });
@@ -102,13 +102,13 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                   child: IconButton(
                     padding: EdgeInsets.all(0.0),
                     icon:
-                        Icon(_stock?.pinned ?? false ? Folio.unpin : Folio.pin),
+                        Icon(_stock.pinned ?? false ? Folio.unpin : Folio.pin),
                     iconSize: 25.0,
                     splashRadius: 25.0,
                     onPressed: () {
                       DatabaseActions.updatePinned(
-                        _stock.code!,
-                        _stock.exchange!,
+                        _stock.code,
+                        _stock.exchange,
                         !_stock.pinned,
                       ).then((value) {
                         if (value) {
@@ -118,7 +118,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                         }
                       });
                     },
-                    tooltip: _stock?.pinned ?? false ? "Unpin" : "Pin",
+                    tooltip: _stock.pinned ?? false ? "Unpin" : "Pin",
                   ),
                 ),
                 SizedBox(
@@ -134,12 +134,12 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                     onPressed: () {
                       if (_stock.isVisible) {
                         DatabaseActions.deleteTracked(
-                            _stock.code!, _stock.exchange!);
+                            _stock.code, _stock.exchange);
                       } else {
                         DatabaseActions.addTracked(
-                          _stock.code!,
-                          _stock.exchange!,
-                          _stock.name!,
+                          _stock.code,
+                          _stock.exchange,
+                          _stock.name,
                           _stock.pinned,
                         );
                       }
@@ -182,27 +182,27 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                 children: [
                   MapTile(
                     name: "PRICE",
-                    value: _stock?.lastValue?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock.lastValue?.toStringAsFixed(2) ?? "—",
                   ),
                   MapTile(
                     name: "QTY",
-                    value: _stock?.qty?.toString() ?? "N/A",
+                    value: _stock.qty?.toString() ?? "—",
                   ),
                   MapTile(
                     name: "ESR",
-                    value: _stock?.esr?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock.esr?.toStringAsFixed(2) ?? "—",
                   ),
                   MapTile(
                     name: "MSR",
-                    value: _stock?.msr?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock.msr?.toStringAsFixed(2) ?? "—",
                   ),
                   MapTile(
                     name: "NET",
-                    value: _stock?.netAmount?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock.netAmount?.toStringAsFixed(2) ?? "—",
                   ),
                   MapTile(
                     name: "NET/STK",
-                    value: _stock?.netPerStock?.toStringAsFixed(2) ?? "N/A",
+                    value: _stock?.netPerStock?.toStringAsFixed(2) ?? "—",
                   ),
                 ],
               ),
@@ -213,7 +213,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _stock?.name == null
+                _stock.name == null
                     ? TextLoadingIndicator(
                         width: 200,
                         height: Theme.of(context).textTheme.titleLarge!.fontSize!)
@@ -232,20 +232,16 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _stock?.exchange == null || _stock?.code == null
-                    ? TextLoadingIndicator(
-                        width: 100,
-                        height: Theme.of(context).textTheme.bodyLarge!.fontSize!)
-                    : Text(
-                        (_stock?.exchange ?? "") + "-" + (_stock.code ?? ""),
+                Text(
+                        _stock.exchange + "-" + _stock.code,
                         style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                _stock?.lastUpdated == null
+                ),
+                _stock.lastUpdated == null
                     ? TextLoadingIndicator(
                         width: 150,
                         height: Theme.of(context).textTheme.bodyLarge!.fontSize!)
                     : Text(
-                        _stock!.lastUpdated!,
+                        _stock.lastUpdated!,
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
               ],

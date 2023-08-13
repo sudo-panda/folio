@@ -61,7 +61,7 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                   keyboardType: TextInputType.text,
                   controller: _nseCodeCtl,
                   validator: (value) {
-                    if (value!.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -83,7 +83,7 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                   keyboardType: TextInputType.text,
                   controller: _bseCodeCtl,
                   validator: (value) {
-                    if (value!.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -117,7 +117,7 @@ class _AddPortfolioDialogState extends State<AddPortfolioDialog> {
                           )),
                       child: Text("Add"),
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                        if (_formKey.currentState != null && _formKey.currentState!.validate()) {
                           DatabaseActions.linkCodes({
                             'NSE': _nseCodeCtl.text,
                             'BSE': _bseCodeCtl.text,

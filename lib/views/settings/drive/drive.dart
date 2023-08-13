@@ -168,7 +168,11 @@ class _DriveAreaState extends State<DriveArea> {
     });
 
     final authHeaders = await account?.authHeaders;
-    final authenticateClient = GoogleAuthClient(authHeaders!);
+    if (authHeaders == null) {
+      log("drive.showRestoreDialog() => Auth Headers was null");
+      return;
+    }
+    final authenticateClient = GoogleAuthClient(authHeaders);
     final driveApi = drive.DriveApi(authenticateClient);
 
     final path = await Db().getDbPath();
@@ -192,7 +196,7 @@ class _DriveAreaState extends State<DriveArea> {
     setState(() {
       _isProcessing = true;
     });
-    String id = await showDialog(
+    String? id = await showDialog(
       context: context,
       builder: (_) => SimpleDialog(
         shape: RoundedRectangleBorder(
@@ -269,7 +273,11 @@ class _DriveAreaState extends State<DriveArea> {
       });
 
       final authHeaders = await account?.authHeaders;
-      final authenticateClient = GoogleAuthClient(authHeaders!);
+      if (authHeaders == null) {
+        log("drive.showRestoreDialog() => Auth Headers was null");
+        return;
+      }
+      final authenticateClient = GoogleAuthClient(authHeaders);
       final driveApi = drive.DriveApi(authenticateClient);
 
       Object file = await driveApi.files
@@ -302,7 +310,7 @@ class _DriveAreaState extends State<DriveArea> {
       _isProcessing = true;
     });
 
-    String id = await showDialog(
+    String? id = await showDialog(
       context: context,
       builder: (_) => SimpleDialog(
         shape: RoundedRectangleBorder(
@@ -379,7 +387,11 @@ class _DriveAreaState extends State<DriveArea> {
       });
 
       final authHeaders = await account?.authHeaders;
-      final authenticateClient = GoogleAuthClient(authHeaders!);
+      if (authHeaders == null) {
+        log("drive.showDeleteDialog() => Auth Headers was null");
+        return;
+      }
+      final authenticateClient = GoogleAuthClient(authHeaders);
       final driveApi = drive.DriveApi(authenticateClient);
 
       driveApi.files.delete(id);
@@ -393,7 +405,11 @@ class _DriveAreaState extends State<DriveArea> {
 
   Future<dynamic> getBackups() async {
     final authHeaders = await account?.authHeaders;
-    final authenticateClient = GoogleAuthClient(authHeaders!);
+    if (authHeaders == null) {
+      log("getBackups() => Auth Headers was null");
+      return;
+    }
+    final authenticateClient = GoogleAuthClient(authHeaders);
     final driveApi = drive.DriveApi(authenticateClient);
     return await driveApi.files.list(spaces: 'appDataFolder');
   }

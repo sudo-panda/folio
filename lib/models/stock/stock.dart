@@ -15,13 +15,13 @@ class Stock {
         _tracked = Tracked.fromDbTuple(tuple),
         _latest = Latest();
 
-  int get id => _portfolio.rowid;
+  int? get id => _portfolio.rowid;
 
-  String? get name => _tracked?.name;
+  String? get name => _tracked.name;
 
-  String? get exchange => _tracked?.exchange;
+  String get exchange => _tracked.exchange;
 
-  String? get code => _tracked?.code;
+  String get code => _tracked.code;
 
   int? get qty => _portfolio?.qty;
 
@@ -53,9 +53,9 @@ class Stock {
 
   bool get pinned => _tracked.pinned;
 
-  String get bseCode => _portfolio.bseCode;
+  String? get bseCode => _portfolio.bseCode;
 
-  String get nseCode => _portfolio.nseCode;
+  String? get nseCode => _portfolio.nseCode;
 
   set pinned(bool pin) {
     _tracked.pinned = pin;
@@ -65,7 +65,8 @@ class Stock {
     _tracked.name = name;
   }
 
-  set bseCode(String code) {
+  set bseCode(String? code) {
+    if (code == null) return;
     _portfolio.bseCode = code;
 
     if (_tracked.exchange == "BSE") {
@@ -73,7 +74,8 @@ class Stock {
     }
   }
 
-  set nseCode(String code) {
+  set nseCode(String? code) {
+    if (code == null) return;
     _portfolio.nseCode = code;
 
     if (_tracked.exchange == "NSE") {
@@ -81,12 +83,12 @@ class Stock {
     }
   }
 
-  set latest(Latest data) {
-    _latest.change = data?.change ?? _latest.change;
-    _latest.percentageChange =
-        data?.percentageChange ?? _latest.percentageChange;
-    _latest.sign = data?.sign ?? 0;
-    _latest.updated = data!.updated;
-    _latest.value = data!.value;
+  set latest(Latest? data) {
+    if (data == null) return;
+    _latest.change = data.change;
+    _latest.percentageChange = data.percentageChange;
+    _latest.sign = data.sign;
+    _latest.updated = data.updated;
+    _latest.value = data.value;
   }
 }

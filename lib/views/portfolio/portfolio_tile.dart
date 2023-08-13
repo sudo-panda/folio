@@ -32,14 +32,14 @@ class PortfolioTile extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 runAlignment: WrapAlignment.center,
                 children: [
-                  _portfolio?.bseCode != null
+                  _portfolio.bseCode != null
                       ? Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                "BSE - " + (_portfolio?.bseCode)!,
+                                "BSE - " + _portfolio.bseCode!,
                                 style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               SizedBox(
@@ -58,7 +58,7 @@ class PortfolioTile extends StatelessWidget {
                                   await showDialog(
                                     context: context,
                                     builder: (context) => EditCodeDialog(
-                                        _portfolio!.bseCode!,
+                                        _portfolio.bseCode!,
                                         "BSE",
                                         updateBSECode),
                                   );
@@ -70,14 +70,14 @@ class PortfolioTile extends StatelessWidget {
                       : Container(
                           width: 0,
                         ),
-                  _portfolio?.nseCode != null
+                  _portfolio.nseCode != null
                       ? Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                "NSE - " + _portfolio!.nseCode,
+                                "NSE - " + _portfolio.nseCode!,
                                 style: Theme.of(context).textTheme.bodyLarge,
                               ),
                               SizedBox(
@@ -96,7 +96,7 @@ class PortfolioTile extends StatelessWidget {
                                   showDialog(
                                     context: context,
                                     builder: (context) => EditCodeDialog(
-                                        _portfolio!.nseCode!,
+                                        _portfolio.nseCode!,
                                         "NSE",
                                         updateNSECode),
                                   );
@@ -118,7 +118,7 @@ class PortfolioTile extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    _portfolio?.qty?.toString() ?? "N/A",
+                    _portfolio.qty?.toString() ?? "—",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
@@ -129,7 +129,7 @@ class PortfolioTile extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    _portfolio?.msr?.toStringAsFixed(2) ?? "N/A",
+                    _portfolio.msr?.toStringAsFixed(2) ?? "—",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
@@ -140,7 +140,7 @@ class PortfolioTile extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    _portfolio?.esr?.toStringAsFixed(2) ?? "N/A",
+                    _portfolio?.esr?.toStringAsFixed(2) ?? "—",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme

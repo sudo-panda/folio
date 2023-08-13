@@ -181,18 +181,18 @@ class _ImportAreaState extends State<ImportArea> {
                   ),
                   title: Text("Delete Database"),
                   onTap: () async {
-                    String result = await showDialog(
+                    String? result = await showDialog(
                       context: context,
                       builder: (_) => AlertDialog(
-                        title: Text("Careful!"),
+                        title: Center(child: Text("WARNING")),
                         content: Text(
                           "This will delete the database. Proceed only if you know what you are doing.",
                           style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.justify,
                         ),
                         actions: [
                           TextButton(
                             style: TextButton.styleFrom(
-                                foregroundColor: Theme.of(context).colorScheme.background,
                                 minimumSize: Size(88, 36),
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 shape: const RoundedRectangleBorder(
@@ -200,7 +200,7 @@ class _ImportAreaState extends State<ImportArea> {
                                       BorderRadius.all(Radius.circular(5)),
                                 )),
                             onPressed: () {
-                              Navigator.pop(context, "");
+                              Navigator.pop(context, "Delete");
                             },
                             child: Text("Delete"),
                           ),
@@ -217,15 +217,15 @@ class _ImportAreaState extends State<ImportArea> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.pop(context, null);
+                              Navigator.pop(context, "Cancel");
                             },
                             child: Text("Cancel"),
                           ),
                         ],
-                        actionsPadding: EdgeInsets.symmetric(horizontal: 10),
+                        actionsPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       ),
                     );
-                    if (result == "") {
+                    if (result == "Delete") {
                       DatabaseActions.deleteDbThenInit();
                     }
                   },
@@ -296,9 +296,15 @@ class _ImportAreaState extends State<ImportArea> {
     if (result != null) {
       String file = "";
       try {
-        file = File(result.files.first.path!).readAsStringSync();
+        if (result.files.first.path != null)
+          file = File(result.files.first.path!).readAsStringSync();
+        else {
+          log("data.importLogs() => Path is null\n ");
+          return;
+        }
       } catch (e) {
         log("data.importLogs() => Error in reading file\n " + e.toString());
+        return;
       }
 
       List<TradeLog> logs = [];
