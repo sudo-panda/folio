@@ -26,17 +26,17 @@ class DetailsView extends StatefulWidget {
 
 class _DetailsViewState extends State<DetailsView>
     with TickerProviderStateMixin {
-  Stock _stock;
-  Latest _bseLatest;
-  Latest _nseLatest;
-  TradeCycle _computedCycle;
-  TradeSummary _summary;
-  Future<TradeSummary> _futureSummary;
-  Future<List<TradeLog>> _futureLogs;
+  late Stock _stock;
+  late Latest _bseLatest;
+  late Latest _nseLatest;
+  late TradeCycle _computedCycle;
+  late TradeSummary _summary;
+  late Future<TradeSummary> _futureSummary;
+  late Future<List<TradeLog>> _futureLogs;
 
-  StreamSubscription<Latest> _latestBSEStreamSub;
-  StreamSubscription<Latest> _latestNSEStreamSub;
-  TabController _tabController;
+  late StreamSubscription<Latest?> _latestBSEStreamSub;
+  late StreamSubscription<Latest?> _latestNSEStreamSub;
+  late TabController _tabController;
 
   final _formKey = GlobalKey<FormState>();
   final _qtyController = TextEditingController();
@@ -50,20 +50,20 @@ class _DetailsViewState extends State<DetailsView>
 
     if (_stock?.bseCode != null) {
       _latestBSEStreamSub =
-          StockRepository.getPeriodicLatest(_stock?.bseCode, "BSE")
+          StockRepository.getPeriodicLatest(_stock!.bseCode, "BSE")
               .listen((value) {
         setState(() {
-          _bseLatest = value;
+          _bseLatest = value!;
         });
       });
     }
 
     if (_stock?.nseCode != null) {
       _latestNSEStreamSub =
-          StockRepository.getPeriodicLatest(_stock?.nseCode, "NSE")
+          StockRepository.getPeriodicLatest(_stock!.nseCode, "NSE")
               .listen((value) {
         setState(() {
-          _nseLatest = value;
+          _nseLatest = value!;
         });
       });
     }
@@ -94,12 +94,12 @@ class _DetailsViewState extends State<DetailsView>
         centerTitle: true,
         title: Text("Details"),
         elevation: 0,
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
       ),
       body: Column(
         children: [
           Container(
-            color: Theme.of(context).backgroundColor,
+            color: Theme.of(context).colorScheme.background,
             child: Column(
               children: [
                 Padding(
@@ -112,13 +112,13 @@ class _DetailsViewState extends State<DetailsView>
                               width: 200,
                               height: Theme.of(context)
                                   .textTheme
-                                  .headline6
-                                  .fontSize)
+                                  .titleLarge
+                                  !.fontSize!)
                           : Flexible(
                               child: Text(
-                                _stock?.name,
+                                _stock!.name!,
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline6,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ),
                     ],
@@ -136,8 +136,8 @@ class _DetailsViewState extends State<DetailsView>
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "BSE - " + _stock?.bseCode,
-                                  style: Theme.of(context).textTheme.bodyText1,
+                                  "BSE - " + _stock!.bseCode,
+                                  style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                                 SizedBox(
                                   width: 5,
@@ -147,15 +147,15 @@ class _DetailsViewState extends State<DetailsView>
                                     Icons.edit,
                                     size: Theme.of(context)
                                             .textTheme
-                                            .bodyText1
-                                            .fontSize +
+                                            .bodyLarge
+                                            !.fontSize! +
                                         3,
                                   ),
                                   onTap: () async {
                                     await showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
-                                          _stock?.bseCode,
+                                          _stock!.bseCode,
                                           "BSE",
                                           updateBSECode),
                                     );
@@ -175,8 +175,8 @@ class _DetailsViewState extends State<DetailsView>
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "NSE - " + _stock?.nseCode,
-                                  style: Theme.of(context).textTheme.bodyText1,
+                                  "NSE - " + _stock!.nseCode,
+                                  style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                                 SizedBox(
                                   width: 5,
@@ -186,15 +186,15 @@ class _DetailsViewState extends State<DetailsView>
                                     Icons.edit,
                                     size: Theme.of(context)
                                             .textTheme
-                                            .bodyText1
-                                            .fontSize +
+                                            .bodyLarge
+                                            !.fontSize! +
                                         3,
                                   ),
                                   onTap: () async {
                                     await showDialog(
                                       context: context,
                                       builder: (context) => EditCodeDialog(
-                                          _stock?.nseCode,
+                                          _stock!.nseCode,
                                           "NSE",
                                           updateNSECode),
                                     );
@@ -254,7 +254,7 @@ class _DetailsViewState extends State<DetailsView>
             children: [
               Expanded(
                 child: Container(
-                  color: Theme.of(context).backgroundColor,
+                  color: Theme.of(context).colorScheme.background,
                   child: Center(
                     child: TabBar(
                       controller: _tabController,
@@ -273,8 +273,8 @@ class _DetailsViewState extends State<DetailsView>
                           child: Text("LOGS"),
                         ),
                       ],
-                      indicatorColor: Theme.of(context).accentColor,
-                      labelColor: Theme.of(context).accentColor,
+                      indicatorColor: Theme.of(context).colorScheme.secondary,
+                      labelColor: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ),
@@ -283,7 +283,7 @@ class _DetailsViewState extends State<DetailsView>
           ),
           Container(
             height: 1,
-            color: Theme.of(context).accentColor,
+            color: Theme.of(context).colorScheme.secondary,
           ),
           Expanded(
             child: TabBarView(
@@ -291,7 +291,7 @@ class _DetailsViewState extends State<DetailsView>
               children: [
                 FutureBuilder(
                   future: _futureSummary,
-                  builder: (context, snapshot) {
+                  builder: (context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
@@ -318,7 +318,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -332,7 +332,7 @@ class _DetailsViewState extends State<DetailsView>
                           Form(
                             key: _formKey,
                             child: Card(
-                              color: Theme.of(context).backgroundColor,
+                              color: Theme.of(context).colorScheme.background,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -354,10 +354,10 @@ class _DetailsViewState extends State<DetailsView>
                                             RegExp(r'[0-9]')),
                                       ],
                                       validator: (value) {
-                                        if (value.isEmpty) {
+                                        if (value!.isEmpty) {
                                           return 'Required';
                                         } else if (int.parse(value) >
-                                            _stock.qty) {
+                                            _stock.qty!) {
                                           return 'Too High!';
                                         }
                                         return null;
@@ -377,7 +377,7 @@ class _DetailsViewState extends State<DetailsView>
                                           TextInputType.numberWithOptions(
                                               decimal: true),
                                       validator: (value) {
-                                        if (value.isEmpty ||
+                                        if (value!.isEmpty ||
                                             RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
                                                 .hasMatch(value)) {
                                           return null;
@@ -389,23 +389,33 @@ class _DetailsViewState extends State<DetailsView>
                                     Row(
                                       children: [
                                         Spacer(),
-                                        FlatButton(
+                                        TextButton(
+                                          style: TextButton.styleFrom(
+                                              foregroundColor: Colors.black87,
+                                              minimumSize: Size(88, 36),
+                                              padding: EdgeInsets.symmetric(horizontal: 16),
+                                              shape: const RoundedRectangleBorder(
+                                                borderRadius:
+                                                BorderRadius.all(Radius.circular(2)),
+                                              )),
                                           child: Text("Calculate"),
                                           onPressed: () {
-                                            if (_formKey.currentState
-                                                .validate()) {
+                                            if (_formKey.currentState!.validate()) {
                                               int qty = int.parse(
                                                   _qtyController.text);
+                                              // FIXME check rate is valid (!= 0  or null)
                                               double rate =
-                                                  _rateController.text.isEmpty
+                                                  (_rateController.text.isEmpty
                                                       ? _stock?.lastValue
                                                       : double.parse(
-                                                          _rateController.text);
+                                                          _rateController.text)) ?? 0;
                                               var cycle = _summary.computeCycle(
                                                   qty, rate);
-                                              setState(() {
-                                                _computedCycle = cycle;
-                                              });
+                                              if (cycle != null) {
+                                                setState(() {
+                                                  _computedCycle = cycle;
+                                                });
+                                              }
                                             }
                                           },
                                         ),
@@ -426,7 +436,7 @@ class _DetailsViewState extends State<DetailsView>
                 ),
                 FutureBuilder(
                   future: _futureSummary,
-                  builder: (context, snapshot) {
+                  builder: (context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
@@ -454,7 +464,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -472,7 +482,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "No stocks remaining",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -490,7 +500,7 @@ class _DetailsViewState extends State<DetailsView>
                 ),
                 FutureBuilder(
                   future: _futureSummary,
-                  builder: (context, snapshot) {
+                  builder: (context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
@@ -518,7 +528,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "Sorry there is some inconsistency in the logs",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -535,7 +545,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "No stocks sold",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -553,7 +563,7 @@ class _DetailsViewState extends State<DetailsView>
                 ),
                 FutureBuilder(
                   future: _futureLogs,
-                  builder: (context, snapshot) {
+                  builder: (context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
@@ -581,7 +591,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "An error occurred",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -598,7 +608,7 @@ class _DetailsViewState extends State<DetailsView>
                               child: Text(
                                 "No logs imported",
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.headline4,
+                                style: Theme.of(context).textTheme.headlineMedium,
                               ),
                             ),
                           ),
@@ -643,7 +653,7 @@ class EditCodeDialog extends StatefulWidget {
 }
 
 class _EditCodeDialogState extends State<EditCodeDialog> {
-  TextEditingController _codeCtl;
+  late TextEditingController _codeCtl;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -661,7 +671,7 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -676,7 +686,7 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   "Edit Code",
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(
@@ -689,12 +699,12 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
                     ),
                     helperText: widget.exchange + " code",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.text,
                   controller: _codeCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -705,27 +715,33 @@ class _EditCodeDialogState extends State<EditCodeDialog> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Cancel"),
                       onPressed: () {
                         Navigator.pop(context);
                       },
                     ),
                     Spacer(),
-                    FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(5)),
+                          )),
                       child: Text("Apply"),
                       onPressed: () async {
-                        if (_formKey.currentState.validate()) {
+                        if (_formKey.currentState!.validate()) {
                           if (widget.code != _codeCtl.text) {
                             await DatabaseActions.updateCode(
                               widget.code,

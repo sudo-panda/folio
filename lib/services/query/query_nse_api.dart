@@ -8,7 +8,7 @@ class NetworkService {
   Map<String, String> cookies = {};
 
   void _updateCookie(http.Response response) {
-    String allSetCookie = response.headers['set-cookie'];
+    String? allSetCookie = response.headers['set-cookie'];
 
     if (allSetCookie != null) {
       var setCookies = allSetCookie.split(',');
@@ -49,16 +49,16 @@ class NetworkService {
 
     for (var key in cookies.keys) {
       if (cookie.length > 0) cookie += "; ";
-      cookie += key + "=" + cookies[key];
+      cookie += key + "=" + cookies[key]!;
     }
 
     return cookie;
   }
 
-  Future<String> get(String url, Map<String, String> headers) async {
+  Future<String> get(Uri uri, Map<String, String> headers) async {
     headers['cookie'] = _generateCookieHeader();
 
-    http.Response response = await http.get(url, headers: headers);
+    http.Response response = await http.get(uri, headers: headers);
     final String res = response.body;
     final int statusCode = response.statusCode;
 
@@ -68,7 +68,7 @@ class NetworkService {
       throw new Exception("Error while fetching data: " +
           statusCode.toString() +
           "\n\n" +
-          response.request.headers.toString());
+          response.request!.headers.toString());
     }
     return res;
   }
@@ -86,7 +86,7 @@ class QueryNSEAPI {
     'Upgrade-Insecure-Requests'.toLowerCase(): '1',
   };
 
-  static Future<Latest> getCurrentData(String code) async {
+  static Future<Latest?> getCurrentData(String code) async {
     var session = NetworkService();
     var uri = Uri.https(
       'www.nseindia.com',
@@ -97,7 +97,7 @@ class QueryNSEAPI {
     );
 
     try {
-      await session.get(uri.toString(), headers);
+      await session.get(uri, headers);
     } catch (e) {
       dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
     }
@@ -113,7 +113,7 @@ class QueryNSEAPI {
     String r;
 
     try {
-      r = await session.get(uri.toString(), headers);
+      r = await session.get(uri, headers);
     } catch (e) {
       dev.log("query_nse_api.getCurrentData($code) try 1 => \n" + e.toString());
       return null;
@@ -138,7 +138,7 @@ class QueryNSEAPI {
     }
   }
 
-  static Future<String> getName(String code) async {
+  static Future<String?> getName(String code) async {
     var session = NetworkService();
     var uri = Uri.https(
       'www.nseindia.com',
@@ -149,7 +149,7 @@ class QueryNSEAPI {
     );
 
     try {
-      await session.get(uri.toString(), headers);
+      await session.get(uri, headers);
     } catch (e) {
       dev.log("query_nse_api.getCurrentData($code) => \nNSE: Error getting cookies : " + e.toString());
     }
@@ -165,7 +165,7 @@ class QueryNSEAPI {
     String r;
 
     try {
-      r = await session.get(uri.toString(), headers);
+      r = await session.get(uri, headers);
     } catch (e) {
       dev.log("query_nse_api.getName($code) => try 1 \n" + e.toString());
       return null;

@@ -1,12 +1,12 @@
 import 'package:folio/services/database/database.dart';
 
 class Portfolio {
-  int rowid;
-  String bseCode;
-  String nseCode;
-  int qty;
-  double msr;
-  double esr;
+  late int rowid;
+  late String bseCode;
+  late String nseCode;
+  late int qty;
+  late double msr;
+  late double esr;
 
   Portfolio.fromDbTuple(Map<String, dynamic> tuple) {
     rowid = tuple["rowid"];

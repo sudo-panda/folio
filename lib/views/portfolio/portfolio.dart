@@ -12,7 +12,7 @@ class PortfolioView extends StatefulWidget {
 }
 
 class _PortfolioViewState extends State<PortfolioView> {
-  Future<List<Portfolio>> _getPortfolioFuture;
+  late Future<List<Portfolio>> _getPortfolioFuture;
 
   @override
   void initState() {
@@ -50,13 +50,17 @@ class _PortfolioViewState extends State<PortfolioView> {
                     children: <Widget>[
                       Text(
                         "Portfolio",
-                        style: Theme.of(context).textTheme.headline1,
+                        style: Theme.of(context).textTheme.displayLarge,
                       ),
-                      RaisedButton(
-                        shape: CircleBorder(),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.background,
+                          backgroundColor: Theme.of(context).colorScheme.secondary,
+                          minimumSize: Size(88, 36),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          shape: const CircleBorder(),
+                        ),
                         child: Icon(Icons.add),
-                        color: Theme.of(context).accentColor,
-                        textColor: Theme.of(context).backgroundColor,
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -72,7 +76,7 @@ class _PortfolioViewState extends State<PortfolioView> {
           ),
           FutureBuilder(
             future: _getPortfolioFuture,
-            builder: (context, snapshot) {
+            builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return SliverToBoxAdapter(
                   child: Container(),
@@ -84,7 +88,7 @@ class _PortfolioViewState extends State<PortfolioView> {
                   child: Center(
                     child: Text(
                       "Some error occurred",
-                      style: Theme.of(context).textTheme.headline4,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 );
@@ -95,7 +99,7 @@ class _PortfolioViewState extends State<PortfolioView> {
                   child: Center(
                     child: Text(
                       "No stocks in your portfolio",
-                      style: Theme.of(context).textTheme.headline4,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 );

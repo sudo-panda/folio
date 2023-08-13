@@ -7,13 +7,13 @@ class AddTradeLogRoute extends StatefulWidget {
 }
 
 class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
-  TextEditingController _dateCtl;
-  TextEditingController _codeCtl;
-  TextEditingController _rateCtl;
-  TextEditingController _qtyCtl;
+  late TextEditingController _dateCtl;
+  late TextEditingController _codeCtl;
+  late TextEditingController _rateCtl;
+  late TextEditingController _qtyCtl;
   final _formKey = GlobalKey<FormState>();
 
-  List<bool> _isSelected;
+  late List<bool> _isSelected;
   var _exchanges = ["BSE", "NSE"];
   String _selectedExch = 'BSE';
 
@@ -43,12 +43,12 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
         centerTitle: true,
         title: Text("Add Trade Log"),
         elevation: 0,
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         actions: [
           IconButton(
             icon: Icon(Icons.check),
             onPressed: () async {
-                        if (_formKey.currentState.validate()) {
+                        if (_formKey.currentState!.validate()) {
                           var res = await DatabaseActions.setTradeLog(
                             _codeCtl.text.trim(),
                             _selectedExch,
@@ -68,7 +68,14 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                                 return AlertDialog(
                                   title: Text("Couldn't add!"),
                                   actions: [
-                                    FlatButton(
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                          foregroundColor: Colors.black87,
+                                          minimumSize: Size(88, 36),
+                                          padding: EdgeInsets.symmetric(horizontal: 16),
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.all(Radius.circular(2)),
+                                          )),
                                       child: Text("OK"),
                                       onPressed: () {
                                         Navigator.pop(context);
@@ -100,9 +107,9 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                       child: Text(
                         "BUY",
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.subtitle2.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: _isSelected[0]
-                                  ? Theme.of(context).backgroundColor
+                                  ? Theme.of(context).colorScheme.background
                                   : Theme.of(context).colorScheme.onPrimary,
                             ),
                       ),
@@ -112,9 +119,9 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                       child: Text(
                         "SELL",
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.subtitle2.copyWith(
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: _isSelected[1]
-                                  ? Theme.of(context).backgroundColor
+                                  ? Theme.of(context).colorScheme.background
                                   : Theme.of(context).colorScheme.onPrimary,
                             ),
                       ),
@@ -149,12 +156,12 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                     ),
                     helperText: "Code",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.text,
                   controller: _codeCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -167,7 +174,7 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                   builder: (FormFieldState<String> state) {
                     return InputDecorator(
                       decoration: InputDecoration(
-                        labelStyle: Theme.of(context).textTheme.bodyText2,
+                        labelStyle: Theme.of(context).textTheme.bodyMedium,
                         errorStyle: TextStyle(
                           color: Colors.redAccent,
                           fontSize: 16.0,
@@ -178,13 +185,13 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                       isEmpty: false,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          style: Theme.of(context).textTheme.bodyText2,
-                          dropdownColor: Theme.of(context).backgroundColor,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          dropdownColor: Theme.of(context).colorScheme.background,
                           value: _selectedExch,
                           isDense: true,
                           onChanged: (newValue) {
                             setState(() {
-                              _selectedExch = newValue;
+                              _selectedExch = newValue!;
                               state.didChange(newValue);
                             });
                           },
@@ -210,25 +217,25 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Date",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.datetime,
                   onTap: () async {
                     DateTime date = DateTime(1900);
                     FocusScope.of(context).requestFocus(new FocusNode());
 
-                    date = await showDatePicker(
+                    date = (await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
                       firstDate: DateTime(1900),
                       lastDate: DateTime(2100),
-                    );
+                    ))!;
 
-                    _dateCtl.text = date?.toIso8601String()?.substring(0, 10);
+                    _dateCtl.text = (date?.toIso8601String()!.substring(0, 10))!;
                   },
                   controller: _dateCtl,
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value!.isEmpty) {
                       return 'Required';
                     }
                     return null;
@@ -243,15 +250,15 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Quantity",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.number,
                   controller: _qtyCtl,
                   validator: (value) {
-                    if (value.trim() == "") {
+                    if (value?.trim() == "") {
                       return "Required";
                     }
-                    if (RegExp(r"^[0-9]*?$").hasMatch(value.trim())) {
+                    if (RegExp(r"^[0-9]*?$").hasMatch(value!.trim())) {
                       return null;
                     }
                     return "Enter valid rate";
@@ -266,15 +273,15 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                     contentPadding: EdgeInsets.symmetric(horizontal: 15),
                     helperText: "Rate",
                   ),
-                  cursorColor: Theme.of(context).accentColor,
-                  style: Theme.of(context).textTheme.bodyText1,
+                  cursorColor: Theme.of(context).colorScheme.secondary,
+                  style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
-                    if (value.trim() == "") {
+                    if (value?.trim() == "") {
                       return "Required";
                     }
                     if (RegExp(r"^[0-9]*(\.[0-9][0-9]?)?$")
-                        .hasMatch(value.trim())) {
+                        .hasMatch(value!.trim())) {
                       return null;
                     }
                     return "Enter valid rate";
@@ -286,7 +293,7 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
           ),
         ),
       ),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
     );
   }
 }

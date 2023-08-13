@@ -12,8 +12,8 @@ class TrackedView extends StatefulWidget {
 }
 
 class _TrackedViewState extends State<TrackedView> {
-  Future<List<Stock>> _pinnedStockFuture;
-  Future<List<Stock>> _unpinnedStockFuture;
+  late Future<List<Stock>?> _pinnedStockFuture;
+  late Future<List<Stock>?> _unpinnedStockFuture;
 
   Future<bool> hasData() async {
     if (((await _pinnedStockFuture)?.length ?? 0) == 0 &&
@@ -54,13 +54,15 @@ class _TrackedViewState extends State<TrackedView> {
                     children: <Widget>[
                       Text(
                         "Tracked",
-                        style: Theme.of(context).textTheme.headline1,
+                        style: Theme.of(context).textTheme.displayLarge,
                       ),
-                      RaisedButton(
-                        shape: CircleBorder(),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
+                            foregroundColor: Theme.of(context).colorScheme.background,
+                            shape: const CircleBorder(),
+                        ),
                         child: Icon(Icons.add),
-                        color: Theme.of(context).accentColor,
-                        textColor: Theme.of(context).backgroundColor,
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -93,13 +95,13 @@ class _TrackedViewState extends State<TrackedView> {
                     ),
                   ),
                 );
-              } else if (!snapshot.data) {
+              } else if (!snapshot.hasData) {
                 return SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
                       "No stocks tracked",
-                      style: Theme.of(context).textTheme.headline4,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
                 );

@@ -1,10 +1,10 @@
 import 'package:folio/services/database/database.dart';
 
 class Tracked {
-  String code;
-  String exchange;
-  String name;
-  bool pinned;
+  late String code;
+  late String exchange;
+  late String? name;
+  late bool pinned;
 
   Tracked.fromDbTuple(Map<String, dynamic> tuple) {
     code = tuple[Db.colCode];

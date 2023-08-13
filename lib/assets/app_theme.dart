@@ -21,134 +21,129 @@ class AppTheme {
 
   static final ThemeData lightTheme = ThemeData.light().copyWith(
     scaffoldBackgroundColor: _lightScaffoldBackgroundColor,
-    backgroundColor: _lightBackgroundColor,
     appBarTheme: AppBarTheme(
       color: _lightScaffoldBackgroundColor,
       iconTheme: IconThemeData(color: _lightOnPrimaryColor),
-      textTheme: _lightTextTheme,
+      toolbarTextStyle: _lightTextTheme.bodyMedium,
+      titleTextStyle: _lightTextTheme.titleLarge,
     ),
     primaryColor: Colors.lightGreen,
-    colorScheme: ColorScheme.light(
-      primary: _lightPrimaryColor,
-      primaryVariant: _lightPrimaryVariantColor,
-      secondary: _lightSecondaryColor,
-      onPrimary: _lightOnPrimaryColor,
-    ),
     iconTheme: IconThemeData(
       color: _iconColor,
     ),
-    accentColor: _iconColor,
     textTheme: _lightTextTheme,
     canvasColor: Colors.transparent,
-    buttonColor: _lightSecondaryColor,
     unselectedWidgetColor: _lightPrimaryVariantColor,
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(),
+    ),
+    colorScheme: ColorScheme.light(
+      primary: _lightPrimaryColor,
+      background: _lightBackgroundColor,
+      secondary: _iconColor,
+      onPrimary: _lightOnPrimaryColor,
     ),
   );
 
   static final ThemeData darkTheme = ThemeData.dark().copyWith(
     scaffoldBackgroundColor: _darkScaffoldBackgroundColor,
-    backgroundColor: _darkBackgroundColor,
     appBarTheme: AppBarTheme(
       color: _darkScaffoldBackgroundColor,
       iconTheme: IconThemeData(color: _darkOnPrimaryColor),
-      textTheme: _darkTextTheme,
+      toolbarTextStyle: _darkTextTheme.bodyMedium,
+      titleTextStyle: _darkTextTheme.titleLarge,
     ),
     primaryColor: Colors.lightGreen,
-    colorScheme: ColorScheme.light(
-      primary: _darkPrimaryColor,
-      primaryVariant: _darkPrimaryVariantColor,
-      secondary: _darkSecondaryColor,
-      onPrimary: _darkOnPrimaryColor,
-    ),
     iconTheme: IconThemeData(
       color: _iconColor,
     ),
-    accentColor: _iconColor,
     textTheme: _darkTextTheme,
     canvasColor: Colors.transparent,
-    buttonColor: _darkSecondaryColor,
     unselectedWidgetColor: _darkPrimaryVariantColor,
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(),
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: _darkPrimaryVariantColor),
       ),
+    ), colorScheme: ColorScheme.light(
+      primary: _darkPrimaryColor,
+      secondary: _iconColor,
+      background: _darkBackgroundColor,
+      onPrimary: _darkOnPrimaryColor,
     ),
   );
 
   static final TextTheme _lightTextTheme = TextTheme(
-    headline1: _lightHeadline1TextStyle,
-    headline2: _lightHeadline2TextStyle,
-    headline3: _lightHeadline3TextStyle,
-    headline4: _lightHeadline4TextStyle,
-    headline5: _lightHeadline5TextStyle,
-    headline6: _lightHeadline6TextStyle,
-    bodyText1: _lightBodyText1TextStyle,
-    bodyText2: _lightBodyText2TextStyle,
-    button: _lightButtonTextStyle,
-    subtitle1: _lightSubtitle1TextStyle,
+    displayLarge: _lightHeadline1TextStyle,
+    displayMedium: _lightHeadline2TextStyle,
+    displaySmall: _lightHeadline3TextStyle,
+    headlineMedium: _lightHeadline4TextStyle,
+    headlineSmall: _lightHeadline5TextStyle,
+    titleLarge: _lightHeadline6TextStyle,
+    bodyLarge: _lightBodyText1TextStyle,
+    bodyMedium: _lightBodyText2TextStyle,
+    labelLarge: _lightButtonTextStyle,
+    titleMedium: _lightSubtitle1TextStyle,
   );
 
   static final TextTheme _darkTextTheme = TextTheme(
-    headline1: _darkHeadline1TextStyle,
-    headline2: _darkHeadline2TextStyle,
-    headline3: _darkHeadline3TextStyle,
-    headline4: _darkHeadline4TextStyle,
-    headline5: _darkHeadline5TextStyle,
-    headline6: _darkHeadline6TextStyle,
-    bodyText1: _darkBodyText1TextStyle,
-    bodyText2: _darkBodyText2TextStyle,
-    button: _darkButtonTextStyle,
-    subtitle1: _darkSubtitle1TextStyle,
+    displayLarge: _darkHeadline1TextStyle,
+    displayMedium: _darkHeadline2TextStyle,
+    displaySmall: _darkHeadline3TextStyle,
+    headlineMedium: _darkHeadline4TextStyle,
+    headlineSmall: _darkHeadline5TextStyle,
+    titleLarge: _darkHeadline6TextStyle,
+    bodyLarge: _darkBodyText1TextStyle,
+    bodyMedium: _darkBodyText2TextStyle,
+    labelLarge: _darkButtonTextStyle,
+    titleMedium: _darkSubtitle1TextStyle,
   );
 
-  static final TextStyle _lightHeadline1TextStyle =
-      ThemeData.light().textTheme.headline1.copyWith(fontSize: 48);
-  static final TextStyle _lightHeadline2TextStyle =
-      ThemeData.light().textTheme.headline2;
-  static final TextStyle _lightHeadline3TextStyle =
-      ThemeData.light().textTheme.headline3;
-  static final TextStyle _lightHeadline4TextStyle =
-      ThemeData.light().textTheme.headline4.copyWith(fontSize: 25);
-  static final TextStyle _lightHeadline5TextStyle =
-      ThemeData.light().textTheme.headline5;
-  static final TextStyle _lightHeadline6TextStyle =
-      ThemeData.light().textTheme.headline6.copyWith(
+  static final TextStyle? _lightHeadline1TextStyle =
+      ThemeData.light().textTheme.displayLarge?.copyWith(fontSize: 48);
+  static final TextStyle? _lightHeadline2TextStyle =
+      ThemeData.light().textTheme.displayMedium;
+  static final TextStyle? _lightHeadline3TextStyle =
+      ThemeData.light().textTheme.displaySmall;
+  static final TextStyle? _lightHeadline4TextStyle =
+      ThemeData.light().textTheme.headlineMedium?.copyWith(fontSize: 25);
+  static final TextStyle? _lightHeadline5TextStyle =
+      ThemeData.light().textTheme.headlineSmall;
+  static final TextStyle? _lightHeadline6TextStyle =
+      ThemeData.light().textTheme.titleLarge?.copyWith(
             fontSize: 20,
             fontWeight: FontWeight.bold,
           );
-  static final TextStyle _lightBodyText1TextStyle =
-      ThemeData.light().textTheme.bodyText1;
-  static final TextStyle _lightBodyText2TextStyle =
-      ThemeData.light().textTheme.bodyText2;
-  static final TextStyle _lightSubtitle1TextStyle =
-      ThemeData.light().textTheme.subtitle1;
-  static final TextStyle _lightButtonTextStyle =
-      ThemeData.light().textTheme.button.copyWith(color: _lightSecondaryColor);
+  static final TextStyle? _lightBodyText1TextStyle =
+      ThemeData.light().textTheme.bodyLarge;
+  static final TextStyle? _lightBodyText2TextStyle =
+      ThemeData.light().textTheme.bodyMedium;
+  static final TextStyle? _lightSubtitle1TextStyle =
+      ThemeData.light().textTheme.titleMedium;
+  static final TextStyle? _lightButtonTextStyle =
+      ThemeData.light().textTheme.labelLarge?.copyWith(color: _lightSecondaryColor);
 
-  static final TextStyle _darkHeadline1TextStyle =
-      ThemeData.dark().textTheme.headline1.copyWith(fontSize: 48);
-  static final TextStyle _darkHeadline2TextStyle =
-      ThemeData.dark().textTheme.headline2;
-  static final TextStyle _darkHeadline3TextStyle =
-      ThemeData.dark().textTheme.headline3;
-  static final TextStyle _darkHeadline4TextStyle =
-      ThemeData.dark().textTheme.headline4.copyWith(fontSize: 25);
-  static final TextStyle _darkHeadline5TextStyle =
-      ThemeData.dark().textTheme.headline5;
-  static final TextStyle _darkHeadline6TextStyle =
-      ThemeData.dark().textTheme.headline6.copyWith(
+  static final TextStyle? _darkHeadline1TextStyle =
+      ThemeData.dark().textTheme.displayLarge?.copyWith(fontSize: 48);
+  static final TextStyle? _darkHeadline2TextStyle =
+      ThemeData.dark().textTheme.displayMedium;
+  static final TextStyle? _darkHeadline3TextStyle =
+      ThemeData.dark().textTheme.displaySmall;
+  static final TextStyle? _darkHeadline4TextStyle =
+      ThemeData.dark().textTheme.headlineMedium?.copyWith(fontSize: 25);
+  static final TextStyle? _darkHeadline5TextStyle =
+      ThemeData.dark().textTheme.headlineSmall;
+  static final TextStyle? _darkHeadline6TextStyle =
+      ThemeData.dark().textTheme.titleLarge?.copyWith(
             fontSize: 20,
             fontWeight: FontWeight.bold,
           );
-  static final TextStyle _darkBodyText1TextStyle =
-      ThemeData.dark().textTheme.bodyText1;
-  static final TextStyle _darkBodyText2TextStyle =
-      ThemeData.dark().textTheme.bodyText2;
-  static final TextStyle _darkSubtitle1TextStyle =
-      ThemeData.dark().textTheme.subtitle1;
-  static final TextStyle _darkButtonTextStyle =
-      ThemeData.dark().textTheme.button.copyWith(color: _darkSecondaryColor);
+  static final TextStyle? _darkBodyText1TextStyle =
+      ThemeData.dark().textTheme.bodyLarge;
+  static final TextStyle? _darkBodyText2TextStyle =
+      ThemeData.dark().textTheme.bodyMedium;
+  static final TextStyle? _darkSubtitle1TextStyle =
+      ThemeData.dark().textTheme.titleMedium;
+  static final TextStyle? _darkButtonTextStyle =
+      ThemeData.dark().textTheme.labelLarge?.copyWith(color: _darkSecondaryColor);
 }

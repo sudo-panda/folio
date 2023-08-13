@@ -12,7 +12,7 @@ class FolioDrawer extends StatelessWidget {
       child: Drawer(
         semanticLabel: "Settings",
         child: Container(
-          color: Theme.of(context).backgroundColor,
+          color: Theme.of(context).colorScheme.background,
           child: Column(
             children: [
               ListView(
@@ -48,14 +48,14 @@ class FolioDrawer extends StatelessWidget {
                                           ),
                                 onPressed: () {
                                   Provider.of<AppState>(context).updateTheme(
-                                      !Provider.of<AppState>(context)
+                                      !Provider.of<AppState>(context, listen: false)
                                           .isDarkModeOn);
                                 }),
                           ),
                           Spacer(),
                           Text(
                             "folio",
-                            style: Theme.of(context).textTheme.headline2,
+                            style: Theme.of(context).textTheme.displayMedium,
                           ),
                         ],
                       ),

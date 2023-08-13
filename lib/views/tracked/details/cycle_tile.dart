@@ -17,7 +17,7 @@ class CycleTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       elevation: 2,
-      color: Theme.of(context).backgroundColor,
+      color: Theme.of(context).colorScheme.background,
       margin: EdgeInsets.all(10),
       child: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -32,13 +32,13 @@ class CycleTile extends StatelessWidget {
                   textAlign: TextAlign.left,
                   style: Theme.of(context)
                       .textTheme
-                      .bodyText2
-                      .copyWith(fontWeight: FontWeight.bold),
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   dateFormatter.format(cycle.date),
                   textAlign: TextAlign.left,
-                  style: Theme.of(context).textTheme.bodyText2,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -53,8 +53,8 @@ class CycleTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText2
-                        .copyWith(fontWeight: FontWeight.w900),
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 SizedBox(
@@ -71,8 +71,8 @@ class CycleTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText2
-                        .copyWith(fontWeight: FontWeight.w900),
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 SizedBox(
@@ -89,8 +89,8 @@ class CycleTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .bodyText2
-                        .copyWith(fontWeight: FontWeight.w900),
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
               ],
@@ -107,19 +107,19 @@ class CycleTile extends StatelessWidget {
                           Text(
                             cycle.sellQty.toString(),
                             textAlign: TextAlign.left,
-                            style: Theme.of(context).textTheme.bodyText1,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           Text(
                             " x",
                             textAlign: TextAlign.left,
-                            style: Theme.of(context).textTheme.bodyText2,
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
                       ),
                       Text(
                         cycle.sellRate.toStringAsFixed(2),
                         textAlign: TextAlign.left,
-                        style: Theme.of(context).textTheme.bodyText1,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
                   ),
@@ -146,7 +146,7 @@ class CycleTile extends StatelessWidget {
                                 Text(
                                   element.qty.toString(),
                                   textAlign: TextAlign.left,
-                                  style: Theme.of(context).textTheme.bodyText1,
+                                  style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                                 Text(
                                   " x",
@@ -157,7 +157,7 @@ class CycleTile extends StatelessWidget {
                             ),
                             Text(element.rate.toStringAsFixed(2),
                                 textAlign: TextAlign.left,
-                                style: Theme.of(context).textTheme.bodyText1)
+                                style: Theme.of(context).textTheme.bodyLarge)
                           ],
                         ),
                       ),
@@ -176,7 +176,7 @@ class CycleTile extends StatelessWidget {
                   child: Text(
                     cycle.brokerage.toStringAsFixed(2),
                     textAlign: TextAlign.left,
-                    style: Theme.of(context).textTheme.bodyText1,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],
@@ -193,7 +193,7 @@ class CycleTile extends StatelessWidget {
                 Text(
                   "Net:",
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Expanded(
                   child: Row(
@@ -214,7 +214,7 @@ class CycleTile extends StatelessWidget {
                         child: Text(
                           cycle.net.abs().toStringAsFixed(2),
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
                     ],

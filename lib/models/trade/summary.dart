@@ -3,8 +3,8 @@ import 'package:folio/models/trade/cycle.dart';
 import 'package:folio/models/database/trade_log.dart';
 
 class TradeSummary {
-  List<TradeLog> portfolio;
-  List<TradeCycle> cycles;
+  List<TradeLog> portfolio = [];
+  List<TradeCycle> cycles = [];
   bool incorrect;
 
   Future<List<TradeLog>> _buyLogsFuture;
@@ -12,7 +12,7 @@ class TradeSummary {
 
   TradeSummary(this._buyLogsFuture, this._sellLogsFuture) : incorrect = false;
 
-  TradeCycle computeCycle(int sellQty, double sellRate) {
+  TradeCycle? computeCycle(int sellQty, double sellRate) {
     int b = 0;
     var cycle = TradeCycle(DateTime.now(), sellQty, sellRate);
 

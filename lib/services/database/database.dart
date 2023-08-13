@@ -8,7 +8,7 @@ import 'package:sqflite/sqflite.dart';
 class Db {
   static final Db _instance = new Db.internal();
   factory Db() => _instance;
-  static Database _db;
+  static Database? _db;
 
   static String tblTracked = 'Tracked';
   static String tblPortfolio = 'Portfolio';
@@ -31,9 +31,7 @@ class Db {
   static String colDate = 'date';
 
   Future<Database> get db async {
-    if (_db != null) return _db;
-    _db = await initDb();
-    return _db;
+    return _db ?? (_db = await initDb());
   }
 
   Db.internal();
@@ -95,26 +93,26 @@ class Db {
     return res;
   }
 
-  Future<int> getTotalCount(String table) async {
+  Future<int?> getTotalCount(String table) async {
     var dbClient = await db;
-    int count = Sqflite.firstIntValue(
+    int? count = Sqflite.firstIntValue(
         await dbClient.rawQuery('SELECT COUNT(*) FROM $table'));
     return count;
   }
 
   Future<List<Map>> getAllTuples(String table) async {
     var dbClient = await db;
-    List<Map> result = await dbClient.query(table);
+    List<Map<String, dynamic>> result = await dbClient.query(table);
 
     return result;
   }
 
-  Future<List<Map>> getRawQuery(String query) async {
+  Future<List<Map<String, dynamic>>> getRawQuery(String query) async {
     var dbClient = await db;
     return await dbClient.rawQuery(query);
   }
 
-  Future<List<Map>> getQuery(
+  Future<List<Map<String, dynamic>>> getQuery(
       String table, String where, List<dynamic> whereArgs) async {
     var dbClient = await db;
     return await dbClient.query(table, where: where, whereArgs: whereArgs);
@@ -127,20 +125,20 @@ class Db {
         .length;
   }
 
-  Future<List<Map>> getLimitedOrdered(
+  Future<List<Map<String, dynamic>>> getLimitedOrdered(
       String table, int limit, String orderBy) async {
     var dbClient = await db;
     return await dbClient.query(table, limit: limit, orderBy: orderBy);
   }
 
-  Future<List<Map>> getOrderedQuery(String table, String where,
+  Future<List<Map<String, dynamic>>> getOrderedQuery(String table, String where,
       List<dynamic> whereArgs, String orderBy) async {
     var dbClient = await db;
     return await dbClient.query(table,
         where: where, whereArgs: whereArgs, orderBy: orderBy);
   }
 
-  Future<List<Map>> getOrdered(String table, String orderBy) async {
+  Future<List<Map<String, dynamic>>> getOrdered(String table, String orderBy) async {
     var dbClient = await db;
     return await dbClient.query(table, orderBy: orderBy);
   }

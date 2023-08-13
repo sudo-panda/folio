@@ -30,7 +30,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
         ),
       ],
       currentIndex: widget.index,
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       selectedItemColor: Theme.of(context).colorScheme.secondary,
       unselectedItemColor: Theme.of(context).colorScheme.onPrimary,
       onTap: (index) {

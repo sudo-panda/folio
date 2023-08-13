@@ -22,7 +22,7 @@ class ImportRoute extends StatelessWidget {
         title: Text("Manage Data"),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         actions: [
           SizedBox(
             width: 50.0,
@@ -30,10 +30,10 @@ class ImportRoute extends StatelessWidget {
           ),
         ],
       ),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromWindowPadding(WindowPadding.zero, 1),
+          padding: EdgeInsets.fromViewPadding(ViewPadding.zero, 1),
           child: ImportArea(),
         ),
       ),
@@ -47,9 +47,9 @@ class ImportArea extends StatefulWidget {
 }
 
 class _ImportAreaState extends State<ImportArea> {
-  bool _isButtonEnabled;
-  bool _isImporting;
-  bool _isExporting;
+  late bool _isButtonEnabled;
+  late bool _isImporting;
+  late bool _isExporting;
   final DateFormat _fileFormatter = DateFormat('folio-yyyy-MMM-dd-HH-mm-ss');
 
   @override
@@ -76,8 +76,8 @@ class _ImportAreaState extends State<ImportArea> {
                   "Import",
                   style: Theme.of(context)
                       .textTheme
-                      .bodyText1
-                      .copyWith(fontWeight: FontWeight.bold),
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 ListTile(
                   title: Text("Import File"),
@@ -147,8 +147,8 @@ class _ImportAreaState extends State<ImportArea> {
                   "Export",
                   style: Theme.of(context)
                       .textTheme
-                      .bodyText1
-                      .copyWith(fontWeight: FontWeight.bold),
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 ListTile(
                   title: Text("Export to CSV"),
@@ -171,8 +171,8 @@ class _ImportAreaState extends State<ImportArea> {
                   "Delete",
                   style: Theme.of(context)
                       .textTheme
-                      .bodyText1
-                      .copyWith(fontWeight: FontWeight.bold),
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 ListTile(
                   trailing: Icon(
@@ -187,15 +187,18 @@ class _ImportAreaState extends State<ImportArea> {
                         title: Text("Careful!"),
                         content: Text(
                           "This will delete the database. Proceed only if you know what you are doing.",
-                          style: Theme.of(context).textTheme.bodyText1,
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         actions: [
-                          FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5)),
-                            ),
-                            color: Theme.of(context).buttonColor,
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                foregroundColor: Theme.of(context).colorScheme.background,
+                                minimumSize: Size(88, 36),
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(5)),
+                                )),
                             onPressed: () {
                               Navigator.pop(context, "");
                             },
@@ -204,12 +207,15 @@ class _ImportAreaState extends State<ImportArea> {
                           SizedBox(
                             width: 5,
                           ),
-                          FlatButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(5)),
+                          ElevatedButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.background,
+                              minimumSize: Size(88, 36),
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(5)),
+                              ),
                             ),
-                            color: Theme.of(context).buttonColor,
                             onPressed: () {
                               Navigator.pop(context, null);
                             },
@@ -230,7 +236,7 @@ class _ImportAreaState extends State<ImportArea> {
           Spacer(),
           FutureBuilder(
             future: DatabaseActions.getRecentDate(),
-            builder: (context, snapshot) {
+            builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 return Container(
                   margin: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
@@ -248,13 +254,13 @@ class _ImportAreaState extends State<ImportArea> {
                       Expanded(
                         child: Text(
                           "Most recent entry is on: "
-                          "${snapshot.data.day.toString()}-"
-                          "${snapshot.data.month.toString()}-"
-                          "${snapshot.data.year.toString()}",
+                          "${snapshot.data?.day.toString()}-"
+                          "${snapshot.data?.month.toString()}-"
+                          "${snapshot.data?.year.toString()}",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontSize: 18,
-                              color: Theme.of(context).accentColor),
+                              color: Theme.of(context).colorScheme.secondary),
                         ),
                       ),
                     ],
@@ -284,26 +290,26 @@ class _ImportAreaState extends State<ImportArea> {
       _isButtonEnabled = false;
     });
 
-    FilePickerResult result =
+    FilePickerResult? result =
         await FilePicker.platform.pickFiles(type: FileType.any);
 
     if (result != null) {
-      String file;
+      String file = "";
       try {
-        file = File(result.files.first.path).readAsStringSync();
+        file = File(result.files.first.path!).readAsStringSync();
       } catch (e) {
         log("data.importLogs() => Error in reading file\n " + e.toString());
       }
 
-      List<TradeLog> logs;
-      
+      List<TradeLog> logs = [];
+
       try {
         switch (result.files.first.extension) {
           case "csv":
             logs = await DatabaseActions.parseCSVFile(file);
             break;
           case "xls":
-            logs = await DatabaseActions.parseSBIFile(file);
+            logs = await DatabaseActions.parseSBIFile(file) ?? [];
             break;
           default:
             setState(() {
@@ -338,7 +344,7 @@ class _ImportAreaState extends State<ImportArea> {
       await Permission.storage.request();
     }
 
-    String dir = await FilePicker.platform.getDirectoryPath();
+    String? dir = await FilePicker.platform.getDirectoryPath();
     if (dir != null) {
       String csv = await DatabaseActions.getTradesCSV();
 
