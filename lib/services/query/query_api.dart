@@ -36,7 +36,7 @@ class QueryAPI {
         },
       );
 
-      if (r.statusCode == 200) {
+      if (r.statusCode == 200 && r.data != null) {
         var data = jsonDecode(r.data!.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data'];
 
@@ -94,7 +94,7 @@ class QueryAPI {
         },
       );
 
-      if (r.statusCode == 200) {
+      if (r.statusCode == 200 && r.data != null) {
         var ret = jsonDecode(r.data!.substring(4))['PriceUpdate']['entities']
             .first['financial_entity']['common_entity_data']['name']
             .toString();

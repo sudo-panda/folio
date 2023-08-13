@@ -686,7 +686,7 @@ class DatabaseActions {
   }
 
   static Future<bool> addTracked(
-      String code, String exchange, String name, bool pinned) async {
+      String code, String exchange, String? name, bool pinned) async {
     return await Db().insert(Db.tblTracked, {
       Db.colCode: code,
       Db.colExch: exchange,

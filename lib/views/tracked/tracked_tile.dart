@@ -26,14 +26,14 @@ class _TrackedTileState extends State<TrackedTile> {
     super.initState();
     _stock = widget.stock;
     _latestStreamSub =
-        StockRepository.getPeriodicLatest(_stock.code!, _stock.exchange!)
+        StockRepository.getPeriodicLatest(_stock.code, _stock.exchange)
             .listen((value) {
       setState(() {
-        _stock.latest = value!;
+        _stock.latest = value;
       });
     });
-    if (_stock.name == null) {
-      StockRepository.getName(_stock.code!, _stock.exchange!).then((value) {
+    if (_stock.name == null || _stock.name == "") {
+      StockRepository.getName(_stock.code, _stock.exchange).then((value) {
         if (this.mounted && value != null) {
           setState(() {
             _stock.name = value;
@@ -59,7 +59,7 @@ class _TrackedTileState extends State<TrackedTile> {
           : Theme.of(context).colorScheme.background,
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: InkWell(
@@ -112,7 +112,7 @@ class _TrackedTileState extends State<TrackedTile> {
                         SizedBox(
                           height: 5,
                         ),
-                        _stock?.name == null
+                        _stock.name == null
                             ? TextLoadingIndicator(
                                 width: 200,
                                 height: (Theme.of(context)
@@ -120,7 +120,9 @@ class _TrackedTileState extends State<TrackedTile> {
                                     .titleLarge
                                     ?.fontSize)!)
                             : Text(
-                                (_stock?.name == "NULL" ? "-" : (_stock?.name)!),
+                                (_stock.name == "NULL"
+                                    ? "-"
+                                    : _stock.name ?? "-"),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                       ],
@@ -138,8 +140,8 @@ class _TrackedTileState extends State<TrackedTile> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+                      topRight: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
                     ),
                   ),
                   child: Center(
@@ -151,13 +153,19 @@ class _TrackedTileState extends State<TrackedTile> {
                                 width: 70,
                                 height: Theme.of(context)
                                         .textTheme
-                                        .headlineMedium
-                                        !.fontSize! +
+                                        .headlineMedium!
+                                        .fontSize! +
                                     5,
                               )
                             : Text(
                                 _stock?.lastValue?.toStringAsFixed(2) ?? "",
-                                style: Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .background),
                               ),
                         SizedBox(
                           height: 5,
@@ -180,7 +188,7 @@ class _TrackedTileState extends State<TrackedTile> {
                                         Theme.of(context).textTheme.bodyLarge,
                                   ),
                             SizedBox(width: 10),
-                            _stock?.change == null
+                            _stock.change == null
                                 ? TextLoadingIndicator(
                                     width: 40,
                                     height: (Theme.of(context)
@@ -189,7 +197,7 @@ class _TrackedTileState extends State<TrackedTile> {
                                         ?.fontSize)!,
                                   )
                                 : Text(
-                                    _stock!.change!,
+                                    _stock.change!,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyLarge
