@@ -56,8 +56,6 @@ class _LogsViewState extends State<LogsView> {
                         style: ElevatedButton.styleFrom(
                             foregroundColor: Theme.of(context).colorScheme.background,
                             backgroundColor: Theme.of(context).colorScheme.secondary,
-                            minimumSize: Size(88, 36),
-                            padding: EdgeInsets.symmetric(horizontal: 16),
                             shape: const CircleBorder()),
                         child: Icon(Icons.add),
                         onPressed: () {

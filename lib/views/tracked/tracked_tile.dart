@@ -7,6 +7,8 @@ import 'package:folio/models/stock/stock.dart';
 import 'package:folio/views/common/text_loading_indicator.dart';
 import 'package:folio/views/tracked/tracked_bottom_sheet.dart';
 
+import '../../assets/app_theme.dart';
+
 class TrackedTile extends StatefulWidget {
   final Stock stock;
 
@@ -51,11 +53,17 @@ class _TrackedTileState extends State<TrackedTile> {
 
   @override
   Widget build(BuildContext context) {
+    final MyColors myColors = Theme.of(context).extension<MyColors>()!;
+    bool hasReachedESR = (_stock?.lastValue ?? double.negativeInfinity) >
+        (_stock?.esr ?? double.infinity);
+    bool hasReachedMSR = (_stock?.lastValue ?? double.negativeInfinity) >
+        (_stock?.msr ?? double.infinity);
+    bool isLessThanMSR = (_stock?.lastValue ?? double.infinity) <
+        (_stock?.msr ?? double.negativeInfinity);
     return Card(
       key: _scaffold,
-      color: (_stock?.lastValue ?? double.negativeInfinity) >
-              (_stock?.esr ?? double.infinity)
-          ? Colors.lightGreen[600]
+      color: hasReachedESR
+          ? myColors.positiveColor
           : Theme.of(context).colorScheme.background,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -72,16 +80,14 @@ class _TrackedTileState extends State<TrackedTile> {
               Container(
                 width: 20,
                 decoration: BoxDecoration(
-                  color: (_stock?.lastValue ?? double.negativeInfinity) >
-                          (_stock?.msr ?? double.infinity)
-                      ? Colors.lightGreen[600]
-                      : (_stock?.lastValue ?? double.infinity) <
-                              (_stock?.msr ?? double.negativeInfinity)
-                          ? Colors.redAccent
+                  color: hasReachedMSR
+                      ? myColors.positiveColor
+                      : isLessThanMSR
+                          ? myColors.negativeColor
                           : Colors.transparent,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
+                    topLeft: Radius.circular(10),
+                    bottomLeft: Radius.circular(10),
                   ),
                 ),
               ),
@@ -102,11 +108,16 @@ class _TrackedTileState extends State<TrackedTile> {
                                 height: (Theme.of(context)
                                     .textTheme
                                     .bodyMedium
-                                    ?.fontSize)!)
+                                    ?.fontSize)!,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.background,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onBackground,
+                              )
                             : Text(
-                                (_stock?.exchange ?? "") +
+                                (_stock.exchange ?? "") +
                                     " - " +
-                                    (_stock?.code ?? ""),
+                                    (_stock.code ?? ""),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                         SizedBox(
@@ -118,7 +129,12 @@ class _TrackedTileState extends State<TrackedTile> {
                                 height: (Theme.of(context)
                                     .textTheme
                                     .titleLarge
-                                    ?.fontSize)!)
+                                    ?.fontSize)!,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.background,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onBackground,
+                              )
                             : Text(
                                 (_stock.name == "NULL"
                                     ? "-"
@@ -156,6 +172,9 @@ class _TrackedTileState extends State<TrackedTile> {
                                         .headlineMedium!
                                         .fontSize! +
                                     5,
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.onPrimary,
                               )
                             : Text(
                                 _stock?.lastValue?.toStringAsFixed(2) ?? "",
@@ -181,11 +200,20 @@ class _TrackedTileState extends State<TrackedTile> {
                                         .textTheme
                                         .bodyLarge
                                         ?.fontSize)!,
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.onPrimary,
                                   )
                                 : Text(
                                     "${_stock?.percentChange}%",
-                                    style:
-                                        Theme.of(context).textTheme.bodyLarge,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .background),
                                   ),
                             SizedBox(width: 10),
                             _stock.change == null
@@ -195,6 +223,10 @@ class _TrackedTileState extends State<TrackedTile> {
                                         .textTheme
                                         .bodyLarge
                                         ?.fontSize)!,
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.onPrimary,
                                   )
                                 : Text(
                                     _stock.change!,
@@ -203,9 +235,9 @@ class _TrackedTileState extends State<TrackedTile> {
                                         .bodyLarge
                                         ?.copyWith(
                                           color: _stock.changeSign == 1
-                                              ? Colors.green
+                                              ? myColors.positiveColor
                                               : (_stock.changeSign == -1
-                                                  ? Colors.red
+                                                  ? myColors.negativeColor
                                                   : Theme.of(context)
                                                       .colorScheme
                                                       .onPrimary),

@@ -27,15 +27,15 @@ class DetailsView extends StatefulWidget {
 class _DetailsViewState extends State<DetailsView>
     with TickerProviderStateMixin {
   late Stock _stock;
-  late Latest? _bseLatest;
-  late Latest? _nseLatest;
-  late TradeCycle? _computedCycle;
+  Latest? _bseLatest;
+  Latest? _nseLatest;
+  TradeCycle? _computedCycle;
   late TradeSummary _summary;
   late Future<TradeSummary> _futureSummary;
   late Future<List<TradeLog>> _futureLogs;
 
-  late StreamSubscription<Latest?> _latestBSEStreamSub;
-  late StreamSubscription<Latest?> _latestNSEStreamSub;
+  StreamSubscription<Latest?>? _latestBSEStreamSub;
+  StreamSubscription<Latest?>? _latestNSEStreamSub;
   late TabController _tabController;
 
   final _formKey = GlobalKey<FormState>();

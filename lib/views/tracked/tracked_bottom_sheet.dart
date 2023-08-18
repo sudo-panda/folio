@@ -282,11 +282,11 @@ class MapTile extends StatelessWidget {
             children: [
               Text(
                 _value,
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Theme.of(context).colorScheme.background),
               ),
               Text(
                 _name,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onBackground),
               )
             ],
           ),

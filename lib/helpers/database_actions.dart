@@ -435,8 +435,7 @@ class DatabaseActions {
 
     for (var row in trades.skip(1)) {
       late DateTime date;
-      String exchange = "";
-      String? code, bseCode, nseCode;
+      String? exchange, name, code, bseCode, nseCode;
       int qty = 0;
       double rate = 0;
       bool bought = false;
@@ -465,6 +464,9 @@ class DatabaseActions {
             break;
           case "Exchange":
             exchange = element;
+            break;
+          case "Name":
+            name = element;
             break;
           case "BSE Code":
             bseCode = element.toString();
@@ -502,7 +504,8 @@ class DatabaseActions {
           break;
       }
       print("Codes:- BSE: $bseCode \t NSE: $nseCode \t Exch: $exchange \n");
-      if (code == null) continue;
+
+      if (code == null || exchange == null) continue;
 
       try {
         int id =
@@ -553,28 +556,35 @@ class DatabaseActions {
 
   static Future<String> getTradesCSV() async {
     List<Map> tuples = await Db().getRawQuery(""
-        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colNSECode}, "
-        "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
-        "${Db.colRate} "
-        "FROM ${Db.tblTradeLog} T "
+        "SELECT ${Db.colDate}, T.${Db.colName} AS ${Db.colName}, "
+        "L.${Db.colCode} AS ${Db.colBSECode}, P.${Db.colNSECode} AS ${Db.colNSECode}, "
+        "L.${Db.colExch} AS ${Db.colExch}, ${Db.colBought}, "
+        "L.${Db.colQty} AS ${Db.colQty}, ${Db.colRate} "
+        "FROM ${Db.tblTradeLog} L "
         "LEFT JOIN ${Db.tblPortfolio} P "
-        "ON T.${Db.colCode} = P.${Db.colBSECode} "
+        "ON L.${Db.colCode} = P.${Db.colBSECode} "
+        "LEFT JOIN ${Db.tblTracked} T "
+        "ON L.${Db.colCode} = T.${Db.colCode} "
         "WHERE "
-        "T.${Db.colExch} = 'BSE' "
+        "L.${Db.colExch} = 'BSE' "
         "UNION "
-        "SELECT ${Db.colDate}, ${Db.colBSECode}, ${Db.colNSECode}, "
-        "${Db.colExch}, ${Db.colBought}, T.${Db.colQty} AS ${Db.colQty}, "
-        "${Db.colRate} "
-        "FROM ${Db.tblTradeLog} T "
+        "SELECT ${Db.colDate}, T.${Db.colName} AS ${Db.colName}, "
+        "P.${Db.colBSECode} AS ${Db.colBSECode}, L.${Db.colCode} AS ${Db.colNSECode}, "
+        "L.${Db.colExch} AS ${Db.colExch}, ${Db.colBought}, "
+        "L.${Db.colQty} AS ${Db.colQty}, ${Db.colRate} "
+        "FROM ${Db.tblTradeLog} L "
         "LEFT JOIN ${Db.tblPortfolio} P "
-        "ON T.${Db.colCode} = P.${Db.colNSECode} "
+        "ON L.${Db.colCode} = P.${Db.colNSECode} "
+        "LEFT JOIN ${Db.tblTracked} T "
+        "ON L.${Db.colCode} = T.${Db.colCode} "
         "WHERE "
-        "T.${Db.colExch} = 'NSE' "
+        "L.${Db.colExch} = 'NSE' "
         "ORDER BY ${Db.colDate} ASC");
 
     List<List> trades = [
       [
         "Date",
+        "Name",
         "BSE Code",
         "NSE Code",
         "Exchange",
@@ -587,6 +597,7 @@ class DatabaseActions {
     tuples.forEach((element) {
       trades.add([
         element[Db.colDate],
+        element[Db.colName],
         element[Db.colBSECode],
         element[Db.colNSECode],
         element[Db.colExch],

@@ -44,7 +44,7 @@ class _DriveAreaState extends State<DriveArea> {
   bool _isBackingUp = false;
   bool _isRestoring = false;
   bool _isDeleting = false;
-  late signIn.GoogleSignInAccount? account;
+  signIn.GoogleSignInAccount? account;
   final DateFormat _fileFormatter = DateFormat('folio-yyyy-MMM-dd-HH-mm-ss');
   late signIn.GoogleSignIn googleSignIn;
 
@@ -280,23 +280,11 @@ class _DriveAreaState extends State<DriveArea> {
       final authenticateClient = GoogleAuthClient(authHeaders);
       final driveApi = drive.DriveApi(authenticateClient);
 
-      Object file = await driveApi.files
+      var file = await driveApi.files
           .get(id, downloadOptions: drive.DownloadOptions.fullMedia);
 
       final saveFile = File(await Db().getDbPath());
-      List<int> dataStore = [];
-      print(file.toString());
-      // FIXME:
-      // file.stream.listen((data) {
-      //   dataStore.insertAll(dataStore.length, data);
-      // }, onDone: () async {
-      //   log("Download Done");
-      //   saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
-      //     log("Written to File");
-      //   });
-      // }, onError: (e) {
-      //   log("drive.showRestoreDialog() => \n " + e.toString());
-      // });
+      await saveFile.writeAsString(file.toString(), flush: true);
     }
 
     setState(() {

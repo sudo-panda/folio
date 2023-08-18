@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 class TextLoadingIndicator extends StatelessWidget {
   final double width;
   final double height;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   const TextLoadingIndicator({
     required this.width,
     required this.height,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   @override
@@ -16,10 +20,10 @@ class TextLoadingIndicator extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(2)),
               child: LinearProgressIndicator(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          backgroundColor: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
           minHeight: height,
           valueColor:
-              AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.background),
+              AlwaysStoppedAnimation<Color>(foregroundColor ?? Theme.of(context).colorScheme.background),
         ),
       ),
     );
