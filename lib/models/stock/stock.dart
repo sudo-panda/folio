@@ -41,7 +41,7 @@ class Stock {
 
   double? get netAmount => (netPerStock == null || qty == null || qty == 0)
       ? null
-      : (netPerStock! * qty!).abs();
+      : (netPerStock! * qty!);
 
   double? get netPerStock => (lastValue == null || msr == null)
       ? null

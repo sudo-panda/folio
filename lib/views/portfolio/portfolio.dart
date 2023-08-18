@@ -56,11 +56,9 @@ class _PortfolioViewState extends State<PortfolioView> {
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Theme.of(context).colorScheme.background,
                           backgroundColor: Theme.of(context).colorScheme.secondary,
-                          minimumSize: Size(88, 36),
-                          padding: EdgeInsets.symmetric(horizontal: 16),
                           shape: const CircleBorder(),
                         ),
-                        child: Icon(Icons.add),
+                        child: Icon(Icons.link),
                         onPressed: () {
                           showDialog(
                             context: context,

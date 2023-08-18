@@ -64,7 +64,7 @@ class NetworkService {
 
     _updateCookie(response);
 
-    if (statusCode < 200 || statusCode > 400 || json == null) {
+    if (statusCode < 200 || statusCode > 400) {
       throw new Exception("Error while fetching data: " +
           statusCode.toString() +
           "\n\n" +

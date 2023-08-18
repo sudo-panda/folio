@@ -4,15 +4,16 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:folio/models/database/trade_log.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:folio/views/settings/data/add_file.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
-import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:folio/helpers/database_actions.dart';
+import 'package:folio/models/database/trade_log.dart';
 
 class ImportRoute extends StatelessWidget {
   @override
@@ -209,11 +210,13 @@ class _ImportAreaState extends State<ImportArea> {
                           ),
                           ElevatedButton(
                             style: TextButton.styleFrom(
-                              foregroundColor: Theme.of(context).colorScheme.background,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.background,
                               minimumSize: Size(88, 36),
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(5)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(5)),
                               ),
                             ),
                             onPressed: () {
@@ -222,7 +225,8 @@ class _ImportAreaState extends State<ImportArea> {
                             child: Text("Cancel"),
                           ),
                         ],
-                        actionsPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        actionsPadding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       ),
                     );
                     if (result == "Delete") {
@@ -345,9 +349,15 @@ class _ImportAreaState extends State<ImportArea> {
       _isButtonEnabled = false;
       _isExporting = true;
     });
+    final plugin = DeviceInfoPlugin();
+    final android = await plugin.androidInfo;
 
-    if (!await Permission.storage.status.isGranted) {
-      await Permission.storage.request();
+    final storageStatus = android.version.sdkInt < 33
+        ? await Permission.storage.request()
+        : PermissionStatus.granted;
+
+    if (!storageStatus.isGranted) {
+      await Permission.manageExternalStorage.request();
     }
 
     String? dir = await FilePicker.platform.getDirectoryPath();

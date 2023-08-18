@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:folio/state/app_state.dart';
+import 'package:folio/folio_app.dart';
 import 'package:folio/views/settings/drive/drive.dart';
 import 'package:folio/views/settings/data/data.dart';
-import 'package:provider/provider.dart';
 
 class FolioDrawer extends StatelessWidget {
   @override
@@ -32,24 +31,21 @@ class FolioDrawer extends StatelessWidget {
                             alignment: Alignment.topRight,
                             child: IconButton(
                                 iconSize: 30,
-                                icon:
-                                    Provider.of<AppState>(context).isDarkModeOn
-                                        ? Icon(
-                                            Icons.nights_stay_outlined,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          )
-                                        : Icon(
-                                            Icons.wb_sunny_outlined,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary,
-                                          ),
+                                icon: FolioApp.of(context).isLightTheme()
+                                    ? Icon(
+                                        Icons.wb_sunny_outlined,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                      )
+                                    : Icon(
+                                        Icons.nights_stay_outlined,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary,
+                                      ),
                                 onPressed: () {
-                                  Provider.of<AppState>(context).updateTheme(
-                                      !Provider.of<AppState>(context, listen: false)
-                                          .isDarkModeOn);
+                                  FolioApp.of(context).invertTheme();
                                 }),
                           ),
                           Spacer(),
@@ -94,7 +90,6 @@ class FolioDrawer extends StatelessWidget {
                 ],
               ),
               Spacer(),
-              
             ],
           ),
         ),
