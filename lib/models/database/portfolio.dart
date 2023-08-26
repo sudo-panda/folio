@@ -2,6 +2,7 @@ import 'package:folio/services/database/database.dart';
 
 class Portfolio {
   late int? rowid;
+  late String? name;
   late String? bseCode;
   late String? nseCode;
   late int? qty;

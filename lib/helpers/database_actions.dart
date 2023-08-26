@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:csv/csv_settings_autodetection.dart';
 import 'package:folio/services/database/database.dart';
@@ -11,8 +12,13 @@ import 'package:html/parser.dart' as html;
 import 'package:sqflite/sqflite.dart';
 import 'package:html/dom.dart';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart';
+
+import '../models/trade/parsed_file_logs.dart';
 
 class DatabaseActions {
+  static void dummyOnUpdate({int? current, String? message, int? total}) {}
+
   static Future<List<TradeLog>> getAllLogs() async {
     List<Map<String, dynamic>> tuples = await Db()
         .getOrdered(Db.tblTradeLog, '${Db.colDate} DESC, ${Db.colCode} ASC');
@@ -264,9 +270,23 @@ class DatabaseActions {
     return sellLogs;
   }
 
-  static Future<int> getRowIDAfterSettingCodes(String? bseCode, String? nseCode) async {
-    List<Map> tuples = await Db().getQuery(Db.tblPortfolio,
-        '${Db.colBSECode} = ? or ${Db.colNSECode} = ?', [bseCode, nseCode]);
+  static Future<int> getRowIDAfterSettingCodes(
+      String? bseCode, String? nseCode) async {
+    List<Map> tuples;
+
+    if (bseCode != null && nseCode != null) {
+      tuples = await Db().getQuery(Db.tblPortfolio,
+          '${Db.colBSECode} = ? or ${Db.colNSECode} = ?', [bseCode, nseCode]);
+    } else if (bseCode != null) {
+      tuples = await Db()
+          .getQuery(Db.tblPortfolio, '${Db.colBSECode} = ?', [bseCode]);
+    } else if (nseCode != null) {
+      tuples = await Db()
+          .getQuery(Db.tblPortfolio, '${Db.colNSECode} = ?', [nseCode]);
+    } else {
+      throw ArgumentError("Both BSE and NSE codes cannot be null!");
+    }
+
     if (tuples.length == 0) {
       Db().insert(
         Db.tblPortfolio,
@@ -275,30 +295,39 @@ class DatabaseActions {
           Db.colNSECode: nseCode,
         },
       );
-    } else if (tuples.length == 1) {
-      Db().updateConditionally(
-        Db.tblPortfolio,
-        {
-          Db.colBSECode: bseCode,
-          Db.colNSECode: nseCode,
-        },
-        '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
-        [bseCode, nseCode],
-      );
-      return tuples.first[Db.colRowID];
     } else {
-      Db().deleteQuery(
-        Db.tblPortfolio,
-        '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
-        [bseCode, nseCode],
-      );
-      Db().insert(
-        Db.tblPortfolio,
-        {
-          Db.colBSECode: bseCode,
-          Db.colNSECode: nseCode,
-        },
-      );
+      if (bseCode == null) {
+        bseCode = tuples[0][Db.colBSECode];
+      }
+      if (nseCode == null) {
+        nseCode = tuples[0][Db.colNSECode];
+      }
+
+      if (tuples.length == 1) {
+        Db().updateConditionally(
+          Db.tblPortfolio,
+          {
+            Db.colBSECode: bseCode,
+            Db.colNSECode: nseCode,
+          },
+          '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
+          [bseCode, nseCode],
+        );
+        return tuples.first[Db.colRowID];
+      } else {
+        Db().deleteQuery(
+          Db.tblPortfolio,
+          '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
+          [bseCode, nseCode],
+        );
+        Db().insert(
+          Db.tblPortfolio,
+          {
+            Db.colBSECode: bseCode,
+            Db.colNSECode: nseCode,
+          },
+        );
+      }
     }
 
     tuples = await Db().getQuery(Db.tblPortfolio,
@@ -307,7 +336,7 @@ class DatabaseActions {
   }
 
   static Future<bool> linkCodes(Map<String, String> codes) async {
-    int id = await getRowIDAfterSettingCodes(codes["BSE"]!, codes["NSE"]);
+    int id = await getRowIDAfterSettingCodes(codes["BSE"], codes["NSE"]);
 
     bool res = await Db().updateConditionally(
       Db.tblTradeLog,
@@ -326,7 +355,68 @@ class DatabaseActions {
     return await updatePortfolioFigures(id);
   }
 
-  static Future<List<TradeLog>?> parseSBIFile(String file) async {
+  static Future<ParsedFileLogs> parseSBIFile(String filepath,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    onUpdate(message: "Parsing SBI File");
+
+    var bytes = File(filepath).readAsBytesSync();
+    var excelFile = Excel.decodeBytes(bytes);
+
+    if (excelFile.sheets.isEmpty) {
+      throw ArgumentError("Excel file has no sheets");
+    }
+    Sheet excelSheet = excelFile.sheets.values.first;
+    var parsedLogs = ParsedFileLogs();
+    var data = excelSheet.rows;
+    int dateColID = 0,
+        exchangeColID = 3,
+        nameColID = 8,
+        boughtColID = 9,
+        qtyColID = 10,
+        rateColID = 11;
+    int startRow = 3;
+    onUpdate(
+        message: "Parsing SBI File",
+        current: 0,
+        total: excelSheet.maxRows - startRow);
+    for (int rowIndex = startRow; rowIndex < excelSheet.maxRows; rowIndex++) {
+      onUpdate(
+          message: "Parsing SBI File",
+          current: rowIndex - startRow + 1,
+          total: excelSheet.maxRows - startRow);
+      var row = excelSheet.row(rowIndex);
+      DateTime? date;
+      var dateString = row[dateColID]?.value.toString();
+      if (dateString != null) {
+        dateString = dateString.substring(0, dateString.lastIndexOf("T"));
+        int year = int.parse(dateString.substring(0, dateString.indexOf('-')));
+        int month = int.parse(dateString.substring(
+            dateString.indexOf('-') + 1, dateString.lastIndexOf('-')));
+        int day = int.parse(dateString.substring(dateString.lastIndexOf('-')));
+        date = DateTime.utc(year, month, day);
+      }
+      String? exchange = row[exchangeColID]?.value.toString().trim();
+      String? name = row[nameColID]?.value.toString();
+      bool? bought = row[boughtColID]?.value.toString() == "B";
+      int? qty = row[qtyColID] == null
+          ? null
+          : int.parse(row[qtyColID]!.value.toString());
+      double? rate = row[rateColID] == null
+          ? null
+          : double.parse(row[rateColID]!.value.toString());
+
+      parsedLogs.invalidLogs
+          .add(FileLog(date, name, null, null, exchange, bought, qty, rate));
+    }
+
+    return parsedLogs;
+  }
+
+  static Future<ParsedFileLogs> parseOldSBIFile(String file,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    onUpdate(message: "Parsing SBI File (old format)");
     int mode = 0;
     Document parsedHTML = html.parse(file);
     List<String> headers = [];
@@ -340,25 +430,37 @@ class DatabaseActions {
       mode = 1;
     }
 
-    if (table == null) return null;
+    if (table == null) throw FormatException("File format is not correct");
 
     for (var cell
         in table.querySelectorAll("tr").first.querySelectorAll("th")) {
       headers.add(cell.innerHtml);
     }
 
-    List<TradeLog> logs = [];
+    var parsedLogs = ParsedFileLogs();
 
-    for (var row in table.querySelectorAll("tr").skip(1)) {
-      late DateTime date;
-      String exchange = "";
-      String? scripCode, scripName, code;
+    int skipRows = 1;
+    int rowNum = 0;
+
+    onUpdate(
+        message: "Parsing SBI File (old format)",
+        current: rowNum,
+        total: table.querySelectorAll("tr").length - skipRows);
+
+    for (var row in table.querySelectorAll("tr").skip(skipRows)) {
+      onUpdate(
+          message: "Parsing SBI File (old format)",
+          current: ++rowNum,
+          total: table.querySelectorAll("tr").length - skipRows);
+
+      DateTime? date;
+      String? exchange, scripCode, scripName, code;
       int buyQty = 0, sellQty = 0;
-      double buyRate = 0, sellRate = 0;
+      double? buyRate, sellRate;
 
-      int i = 0;
+      int colNum = 0;
       for (var cell in row.querySelectorAll("td")) {
-        switch (headers[i]) {
+        switch (headers[colNum]) {
           case "Date":
             date = DateTime.utc(
                 int.parse(cell.innerHtml
@@ -379,8 +481,8 @@ class DatabaseActions {
           case "Scrip Name":
             scripName = html
                 .parse(html.parse(cell.innerHtml).body?.text)
-                .documentElement
-                !.text
+                .documentElement!
+                .text
                 .trim();
             break;
           case "Buy Qty":
@@ -398,7 +500,7 @@ class DatabaseActions {
           default:
             break;
         }
-        i++;
+        colNum++;
       }
 
       switch (exchange) {
@@ -412,38 +514,55 @@ class DatabaseActions {
           code = null;
       }
 
-      if (code == null) continue;
+      if (buyQty > 0) {
+        var log = FileLog(
+            date, null, scripCode, scripName, exchange, true, buyQty, buyRate);
+        if (date == null || code == null || exchange == null || buyRate == null)
+          parsedLogs.invalidLogs.add(log);
+        else
+          parsedLogs.validLogs.add(log);
+      }
 
-      int id =
-          await DatabaseActions.getRowIDAfterSettingCodes(scripCode, scripName);
-      if (buyQty > 0)
-        logs.add(TradeLog(date, id, code, exchange, true, buyQty, buyRate));
-
-      if (sellQty > 0)
-        logs.add(TradeLog(date, id, code, exchange, false, sellQty, sellRate));
+      if (sellQty > 0) {
+        var log = FileLog(date, null, scripCode, scripName, exchange, false,
+            sellQty, sellRate);
+        if (date == null ||
+            code == null ||
+            exchange == null ||
+            sellRate == null)
+          parsedLogs.invalidLogs.add(log);
+        else
+          parsedLogs.validLogs.add(log);
+      }
     }
 
-    return logs;
+    onUpdate(message: "Parsed SBI File (old format)");
+
+    return parsedLogs;
   }
 
-  static Future<List<TradeLog>> parseCSVFile(String file) async {
+  static Future<ParsedFileLogs> parseCSVFile(String file,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
     var detector = FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
     List<List<dynamic>> trades =
         const CsvToListConverter().convert(file, csvSettingsDetector: detector);
 
-    List<TradeLog> logs = [];
+    var parsedLogs = ParsedFileLogs();
 
     for (var row in trades.skip(1)) {
-      late DateTime date;
+      DateTime? date;
       String? exchange, name, code, bseCode, nseCode;
-      int qty = 0;
-      double rate = 0;
-      bool bought = false;
+      int? qty;
+      double? rate;
+      bool? bought;
 
       int i = 0;
       for (var element in row) {
         switch (trades.first[i]) {
           case "Date":
+            if (element == "null") break;
+
             date = DateTime.utc(
               int.parse(
                 element.substring(
@@ -463,24 +582,31 @@ class DatabaseActions {
             );
             break;
           case "Exchange":
+            if (element == "null") break;
             exchange = element;
             break;
           case "Name":
+            if (element == "null") break;
             name = element;
             break;
           case "BSE Code":
+            if (element == "null") break;
             bseCode = element.toString();
             break;
           case "NSE Code":
+            if (element == "null") break;
             nseCode = element.toString();
             break;
           case "Quantity":
+            if (element == "null") break;
             qty = int.parse(element.toString());
             break;
           case "Rate":
+            if (element == "null") break;
             rate = double.parse(element.toString());
             break;
           case "BUY/SELL":
+            if (element == "null") break;
             switch (element) {
               case "BUY":
                 bought = true;
@@ -505,31 +631,38 @@ class DatabaseActions {
       }
       print("Codes:- BSE: $bseCode \t NSE: $nseCode \t Exch: $exchange \n");
 
-      if (code == null || exchange == null) continue;
-
-      try {
-        int id =
-            await DatabaseActions.getRowIDAfterSettingCodes(bseCode, nseCode);
-
-        if (qty > 0)
-          logs.add(TradeLog(date, id, code, exchange, bought, qty, rate));
-      } catch (e) {
-        dev.log("parseCSVFile() => \n" + e.toString());
-      }
+      var log =
+          FileLog(date, name, bseCode, nseCode, exchange, bought, qty, rate);
+      if (date == null ||
+          code == null ||
+          exchange == null ||
+          bought == null ||
+          qty == null ||
+          rate == null)
+        parsedLogs.invalidLogs.add(log);
+      else
+        parsedLogs.validLogs.add(log);
     }
 
-    return logs;
+    return parsedLogs;
   }
 
-  static Future<Object?> addTradeLogs(List<TradeLog> logs) async {
+  static Future<Object?> addTradeLogs(List<TradeLog> logs,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
     Set updateLater = Set();
 
     return await Db().transact((txn) async {
       int i = 0;
+      onUpdate(message: "Adding trade logs...", current: i, total: logs.length);
+
       for (var log in logs) {
         if (++i % 10 == 0) {
-          dev.log("Processed " + i.toString() + " logs");
+          dev.log("Processed " + i.toString() + " trade logs");
         }
+        onUpdate(
+            message: "Adding trade logs...", current: i, total: logs.length);
+
         try {
           await txn.insert(Db.tblTradeLog, log.toDbTuple());
           updateLater.add(log.id);
@@ -540,18 +673,79 @@ class DatabaseActions {
           });
         } on DatabaseException catch (e) {
           if (e.isUniqueConstraintError()) {
+            dev.log("Unique constraint error on ${log.toString()}!");
             continue;
           } else {
+            onUpdate(
+                message: "Unknown Error Occurred ...",
+                current: i,
+                total: logs.length);
             throw e;
           }
         }
       }
     }).then((value) async {
+      int i = 0;
+      onUpdate(
+          message: "Updating Portfolio ...",
+          current: i,
+          total: updateLater.length);
       for (var id in updateLater) {
+        onUpdate(
+            message: "Updating Portfolio ...",
+            current: ++i,
+            total: updateLater.length);
         await updatePortfolioFigures(id);
       }
       return value;
     });
+  }
+
+  static Future<List<TradeLog>> addFileLogs(List<FileLog> logs,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    // Creating Trade Logs...
+    List<TradeLog> trades = [];
+    int i = 0;
+    onUpdate(
+        message: "Creating trade logs ...", current: i, total: logs.length);
+    for (var fileLog in logs) {
+      if (++i % 10 == 0) {
+        dev.log("Created " + i.toString() + " trade logs");
+      }
+
+      onUpdate(
+          message: "Creating trade logs ...", current: i, total: logs.length);
+
+      if (fileLog.date == null ||
+          fileLog.code == null ||
+          fileLog.exchange == null ||
+          fileLog.bought == null ||
+          fileLog.qty == null ||
+          fileLog.rate == null) {
+        onUpdate(
+            message: "Invalid logs found!", current: i, total: logs.length);
+        throw Exception("Invalid logs found!");
+      }
+
+      try {
+        int id = await DatabaseActions.getRowIDAfterSettingCodes(
+            fileLog.bseCode, fileLog.nseCode);
+
+        trades.add(TradeLog(fileLog.date!, id, fileLog.code!, fileLog.exchange!,
+            fileLog.bought!, fileLog.qty!, fileLog.rate!));
+      } catch (e) {
+        onUpdate(
+            message: "Unknown Error Occurred!", current: i, total: logs.length);
+        throw e;
+      }
+
+      i++;
+    }
+
+    await addTradeLogs(trades, onUpdate: onUpdate);
+
+    return trades;
   }
 
   static Future<String> getTradesCSV() async {
@@ -607,7 +801,8 @@ class DatabaseActions {
       ]);
     });
 
-    return const ListToCsvConverter().convert(trades, delimitAllFields: true);
+    var converter = const ListToCsvConverter();
+    return converter.convert(trades, delimitAllFields: true);
   }
 
   static Future<List<TradeLog>> getStockLogs(int stockId) async {

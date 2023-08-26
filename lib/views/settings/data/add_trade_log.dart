@@ -228,18 +228,17 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
                   style: Theme.of(context).textTheme.bodyLarge,
                   keyboardType: TextInputType.datetime,
                   onTap: () async {
-                    DateTime date = DateTime(1900);
                     FocusScope.of(context).requestFocus(new FocusNode());
 
-                    date = (await showDatePicker(
+                    DateTime? date = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
                       firstDate: DateTime(1900),
                       lastDate: DateTime(2100),
-                    ))!;
+                    );
 
                     _dateCtl.text =
-                        (date?.toIso8601String()!.substring(0, 10))!;
+                        date?.toIso8601String().substring(0, 10) ?? "";
                   },
                   controller: _dateCtl,
                   validator: (value) {

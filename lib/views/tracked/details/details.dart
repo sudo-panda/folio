@@ -10,7 +10,7 @@ import 'package:folio/models/trade/cycle.dart';
 import 'package:folio/models/trade/summary.dart';
 import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/helpers/stock_repository.dart';
-import 'package:folio/views/logs/log_tile.dart';
+import 'package:folio/views/trades/trades_tile.dart';
 import 'package:folio/views/tracked/details/cycle_tile.dart';
 import 'package:folio/views/tracked/tracked_bottom_sheet.dart';
 import 'package:folio/views/common/text_loading_indicator.dart';

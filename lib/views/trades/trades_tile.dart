@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:folio/models/database/trade_log.dart';
 
+import '../../assets/app_theme.dart';
+
 class LogTile extends StatelessWidget {
   final TradeLog _tradeLog;
   final DateFormat _dateFormatter = DateFormat('dd MMM y');
@@ -11,6 +13,7 @@ class LogTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final MyColors myColors = Theme.of(context).extension<MyColors>()!;
     return Card(
       color: Theme.of(context).colorScheme.background,
       elevation: 2,
@@ -33,15 +36,11 @@ class LogTile extends StatelessWidget {
             Container(
               width: 20,
               height: 20,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                color: _tradeLog?.bought == null
-                    ? Colors.transparent
-                    : _tradeLog.bought
-                        ? Colors.lightGreen[600]
-                        : Colors.redAccent,
-                
-              ),
+              child: _tradeLog.bought == null
+                  ? Icon(Icons.circle_outlined)
+                  : _tradeLog.bought
+                  ? Icon(Icons.add_circle, color: myColors.positiveColor,)
+                  : Icon(Icons.add_circle, color: myColors.negativeColor,),
             ),
             Expanded(
               child: Padding(
@@ -56,11 +55,11 @@ class LogTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          (_tradeLog?.exchange ?? "-"),
+                          (_tradeLog.exchange ?? "-"),
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         Text(
-                          _tradeLog?.date == null
+                          _tradeLog.date == null
                               ? "-"
                               : _dateFormatter.format(_tradeLog.date),
                           style: Theme.of(context).textTheme.bodyLarge,
@@ -74,7 +73,7 @@ class LogTile extends StatelessWidget {
                         Expanded(
                           flex: 6,
                           child: Text(
-                            (_tradeLog?.code ?? "-"),
+                            (_tradeLog.code ?? "-"),
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
@@ -84,7 +83,7 @@ class LogTile extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            _tradeLog?.qty?.toString() ?? "-",
+                            _tradeLog.qty.toString() ?? "-",
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge,
@@ -93,7 +92,7 @@ class LogTile extends StatelessWidget {
                         Expanded(
                           flex: 3,
                           child: Text(
-                            _tradeLog?.rate?.toStringAsFixed(2) ?? "-",
+                            _tradeLog.rate.toStringAsFixed(2) ?? "-",
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge,

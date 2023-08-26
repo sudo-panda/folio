@@ -3,15 +3,15 @@ import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
 import 'package:folio/helpers/database_actions.dart';
-import 'package:folio/views/logs/log_tile.dart';
+import 'package:folio/views/trades/trades_tile.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
 
-class LogsView extends StatefulWidget {
+class TradesView extends StatefulWidget {
   @override
-  _LogsViewState createState() => _LogsViewState();
+  _TradesViewState createState() => _TradesViewState();
 }
 
-class _LogsViewState extends State<LogsView> {
+class _TradesViewState extends State<TradesView> {
   late Future<List<TradeLog>> _getLogsFuture;
 
   @override
@@ -49,7 +49,7 @@ class _LogsViewState extends State<LogsView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text(
-                        "Logs",
+                        "Trades",
                         style: Theme.of(context).textTheme.displayLarge,
                       ),
                       ElevatedButton(

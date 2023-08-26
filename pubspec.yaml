@@ -38,6 +38,7 @@ dependencies:
   googleapis: ^11.4.0
   provider: ^6.0.5
   sqflite: ^2.3.0
+  excel: 2.1.0
   html: ^0.15.4
   http: ^1.1.0
   intl: ^0.18.1
