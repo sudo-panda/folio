@@ -61,17 +61,17 @@ class Db {
         '$colNSECode TEXT UNIQUE, '
         '$colQty INTEGER, '
         '$colMSR REAL, '
-        '$colESR REAL '
+        '$colESR REAL'
         ')');
     await db.execute('CREATE TABLE $tblTradeLog ('
-        '$colStockID INTEGER,'
-        '$colDate TEXT,'
-        '$colCode TEXT,'
-        '$colExch TEXT,'
-        '$colBought INTEGER,'
-        '$colQty INTEGER,'
-        '$colRate REAL,'
-        'PRIMARY KEY ($colDate, $colCode, $colExch, $colBought, $colQty, $colRate)'
+        '$colRowID INTEGER PRIMARY KEY, '
+        '$colStockID INTEGER, '
+        '$colDate TEXT, '
+        '$colCode TEXT, '
+        '$colExch TEXT, '
+        '$colBought INTEGER, '
+        '$colQty INTEGER, '
+        '$colRate REAL'
         ')');
   }
 

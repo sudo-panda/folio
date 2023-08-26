@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui';
 import 'dart:io';
 
@@ -8,12 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-import 'package:folio/views/settings/data/add_file.dart';
 import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
 import 'package:folio/helpers/database_actions.dart';
-import 'package:folio/models/database/trade_log.dart';
+
+import 'import_file/import_file.dart';
 
 class ImportRoute extends StatelessWidget {
   @override
@@ -94,7 +93,11 @@ class _ImportAreaState extends State<ImportArea> {
                           Icons.folder_open_outlined,
                           color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                  onTap: _isButtonEnabled ? importLogs : null,
+                  onTap: !_isButtonEnabled ? null : () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      return ImportFileRoute();
+                    }));
+                  },
                 ),
                 ListTile(
                   title: Text("Track a stock"),
@@ -289,60 +292,7 @@ class _ImportAreaState extends State<ImportArea> {
     );
   }
 
-  void importLogs() async {
-    setState(() {
-      _isButtonEnabled = false;
-    });
 
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.any);
-
-    if (result != null) {
-      String file = "";
-      try {
-        if (result.files.first.path != null)
-          file = File(result.files.first.path!).readAsStringSync();
-        else {
-          log("data.importLogs() => Path is null\n ");
-          return;
-        }
-      } catch (e) {
-        log("data.importLogs() => Error in reading file\n " + e.toString());
-        return;
-      }
-
-      List<TradeLog> logs = [];
-
-      try {
-        switch (result.files.first.extension) {
-          case "csv":
-            logs = await DatabaseActions.parseCSVFile(file);
-            break;
-          case "xls":
-            logs = await DatabaseActions.parseSBIFile(file) ?? [];
-            break;
-          default:
-            setState(() {
-              _isButtonEnabled = true;
-            });
-            return;
-        }
-      } catch (e) {
-        log(e.toString());
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) {
-          return AddFile(logs);
-        }),
-      );
-    }
-
-    setState(() {
-      _isButtonEnabled = true;
-    });
-  }
 
   void exportLogs() async {
     setState(() {
