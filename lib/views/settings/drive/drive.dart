@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:folio/services/database/database.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/services/google_api/google_auth_client.dart';
 import 'package:intl/intl.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -175,7 +175,7 @@ class _DriveAreaState extends State<DriveArea> {
     final authenticateClient = GoogleAuthClient(authHeaders);
     final driveApi = drive.DriveApi(authenticateClient);
 
-    final path = await Db().getDbPath();
+    final path = await DatabaseActions.getDbPath();
     final file = File(path);
 
     var media = drive.Media(file.openRead(), file.lengthSync());
@@ -283,7 +283,8 @@ class _DriveAreaState extends State<DriveArea> {
       var file = await driveApi.files
           .get(id, downloadOptions: drive.DownloadOptions.fullMedia);
 
-      final saveFile = File(await Db().getDbPath());
+      final path = await DatabaseActions.getDbPath();
+      final saveFile = File(path);
       await saveFile.writeAsString(file.toString(), flush: true);
     }
 

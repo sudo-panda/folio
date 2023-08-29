@@ -19,32 +19,46 @@ import '../models/trade/parsed_file_logs.dart';
 class DatabaseActions {
   static void dummyOnUpdate({int? current, String? message, int? total}) {}
 
-  static Future<List<TradeLog>> getAllLogs() async {
-    List<Map<String, dynamic>> tuples = await Db()
+  static Future<String> getDbPath() async => await Db().getDbPath();
+
+  static Future<List<TradeLog>> getAllTrades() async {
+    List<Map<String, dynamic>> tradeLogs = await Db()
         .getOrdered(Db.tblTradeLog, '${Db.colDate} DESC, ${Db.colCode} ASC');
 
-    List<TradeLog> logs = [];
-    tuples.forEach((row) => logs.add(TradeLog.fromDbTuple(row)));
-    return logs;
+    List<TradeLog> trades = [];
+    tradeLogs.forEach((row) => trades.add(TradeLog.fromDbTuple(row)));
+    return trades;
   }
 
-  static Future<List<Portfolio>> getAllPortfolios() async {
-    List<Map<String, dynamic>> tuples = await Db().getOrdered(
-        Db.tblPortfolio, '${Db.colNSECode} DESC, ${Db.colBSECode} DESC');
+  static Future<List<Portfolio>> getAllPortfolioLogs() async {
+    List<Map<String, dynamic>> portfolioLogs = await Db().getRawQuery(""
+        "SELECT "
+        "P.${Db.colRowID} AS ${Db.colRowID}, "
+        "P.${Db.colStockID} AS ${Db.colStockID}, "
+        "S.${Db.colName} AS ${Db.colName}, "
+        "S.${Db.colNSECode} AS ${Db.colNSECode}, "
+        "S.${Db.colBSECode} AS ${Db.colBSECode}, "
+        "${Db.colGrossQty}, ${Db.colAvgRate}, ${Db.colMSR}, ${Db.colESR} "
+        ""
+        "FROM ${Db.tblPortfolio} P "
+        "LEFT JOIN ${Db.tblScrips} S "
+        "ON P.${Db.colStockID} = S.${Db.colRowID} ");
 
     List<Portfolio> portfolio = [];
-    tuples.forEach((row) => portfolio.add(Portfolio.fromDbTuple(row)));
+    portfolioLogs.forEach((row) => portfolio.add(Portfolio.fromDbTuple(row)));
     return portfolio;
   }
 
   static Future<DateTime?> getRecentDate() async {
-    List<Map<String, dynamic>> tuples = await Db().getLimitedOrdered(
+    List<Map<String, dynamic>> tradeLogs = await Db().getLimitedOrdered(
       Db.tblTradeLog,
       1,
       '${Db.colDate} DESC',
     );
 
-    return tuples.isEmpty ? null : TradeLog.fromDbTuple(tuples.first).date;
+    return tradeLogs.isEmpty
+        ? null
+        : TradeLog.fromDbTuple(tradeLogs.first).date;
   }
 
   static Future<bool> setTradeLog(
@@ -55,27 +69,26 @@ class DatabaseActions {
     int qty,
     double rate,
   ) async {
-    String where = "", codeCol = "";
+    String codeCol = "";
     if (exchange == "BSE") {
-      where = "${Db.colBSECode} = ?";
       codeCol = Db.colBSECode;
     } else if (exchange == "NSE") {
-      where = "${Db.colNSECode} = ?";
       codeCol = Db.colNSECode;
     }
-    List<Map> tuples = await Db().getQuery(Db.tblPortfolio, where, [code]);
-    if (tuples.length > 1) {
+    var scrips = await Db().getQuery(Db.tblScrips, "$codeCol = ?", [code]);
+
+    if (scrips.length > 1) {
       return false;
-    } else if (tuples.length == 0) {
-      bool res = await Db().insert(Db.tblPortfolio, {codeCol: code});
+    } else if (scrips.length == 0) {
+      bool res = await Db().insert(Db.tblScrips, {codeCol: code});
       if (!res) return res;
-      tuples = await Db().getQuery(Db.tblPortfolio, where, [code]);
+      scrips = await Db().getQuery(Db.tblScrips, "$codeCol = ?", [code]);
     }
 
     if (!(await Db().insert(
       Db.tblTradeLog,
       {
-        Db.colStockID: tuples.first[Db.colRowID],
+        Db.colStockID: scrips.first[Db.colRowID],
         Db.colCode: code,
         Db.colExch: exchange,
         Db.colQty: qty,
@@ -87,15 +100,16 @@ class DatabaseActions {
       return false;
     }
 
-    if (!(await updatePortfolioFigures(tuples.first[Db.colRowID]))) {
+    if (!(await updatePortfolioFigures(scrips.first[Db.colRowID]))) {
       return false;
     }
 
-    tuples = await Db().getQuery(Db.tblTracked,
+    var trackedStocks = await Db().getQuery(Db.tblTracked,
         '${Db.colCode} = ? and ${Db.colExch} = ?', [code, exchange]);
 
-    if (tuples.length == 0) {
+    if (trackedStocks.length == 0) {
       return await Db().insert(Db.tblTracked, {
+        Db.colStockID: scrips.first[Db.colRowID],
         Db.colCode: code,
         Db.colExch: exchange,
         Db.colPinned: 0,
@@ -105,9 +119,17 @@ class DatabaseActions {
     }
   }
 
-  static Future<bool> updatePortfolioFigures(int rowID) async {
-    var buyLogs = await DatabaseActions.getBuyLogs(rowID);
-    var sellLogs = await DatabaseActions.getSellLogs(rowID);
+  static Future<bool> updatePortfolioFigures(int stockID) async {
+    try {
+      await Db().insert(Db.tblPortfolio, {Db.colStockID: stockID});
+    } on DatabaseException catch (e) {
+      if (!e.isUniqueConstraintError()) {
+        throw e;
+      }
+    }
+
+    var buyLogs = await DatabaseActions.getBuyTrades(stockID);
+    var sellLogs = await DatabaseActions.getSellTrades(stockID);
 
     int qty = 0;
     double? msr;
@@ -123,31 +145,32 @@ class DatabaseActions {
       // calculate avgBuyRate for the sold stocks
       while (buyQty > 0) {
         if (b >= buyLogs.length || sellLogs[s].date.isBefore(buyLogs[b].date)) {
+          // FIXME: throw exception
           await Db().updateConditionally(
             Db.tblPortfolio,
             {
-              Db.colQty: qty,
+              Db.colGrossQty: qty,
               Db.colMSR: msr,
               Db.colESR: esr,
             },
-            '${Db.colRowID} = ?',
-            [rowID],
+            '${Db.colStockID} = ?',
+            [stockID],
           );
-          var portfolio = await Db().getQuery(
-            Db.tblPortfolio,
+          var scrips = await Db().getQuery(
+            Db.tblScrips,
             '${Db.colRowID} = ?',
-            [rowID],
+            [stockID],
           );
           await Db().deleteQuery(
             Db.tblTracked,
             '${Db.colCode} = ? and ${Db.colExch} = ?',
-            [portfolio.first[Db.colBSECode], "BSE"],
+            [scrips.first[Db.colBSECode], "BSE"],
           );
 
           await Db().deleteQuery(
             Db.tblTracked,
             '${Db.colCode} = ? and ${Db.colExch} = ?',
-            [portfolio.first[Db.colNSECode], "NSE"],
+            [scrips.first[Db.colNSECode], "NSE"],
           );
           return false;
         }
@@ -208,135 +231,145 @@ class DatabaseActions {
     } else {
       msr = null;
       esr = null;
-      var portfolio = await Db().getQuery(
-        Db.tblPortfolio,
+      var scrips = await Db().getQuery(
+        Db.tblScrips,
         '${Db.colRowID} = ?',
-        [rowID],
+        [stockID],
       );
       await Db().deleteQuery(
         Db.tblTracked,
         '${Db.colCode} = ? and ${Db.colExch} = ?',
-        [portfolio.first[Db.colBSECode], "BSE"],
+        [scrips.first[Db.colBSECode], "BSE"],
       );
 
       await Db().deleteQuery(
         Db.tblTracked,
         '${Db.colCode} = ? and ${Db.colExch} = ?',
-        [portfolio.first[Db.colNSECode], "NSE"],
+        [scrips.first[Db.colNSECode], "NSE"],
       );
     }
 
     bool res = await Db().updateConditionally(
       Db.tblPortfolio,
       {
-        Db.colQty: qty,
+        Db.colGrossQty: qty,
         Db.colMSR: msr,
         Db.colESR: esr,
       },
-      '${Db.colRowID} = ?',
-      [rowID],
+      '${Db.colStockID} = ?',
+      [stockID],
     );
 
     return res;
   }
 
-  static Future<List<TradeLog>> getBuyLogs(int stockID) async {
-    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
+  static Future<List<TradeLog>> getBuyTrades(int stockID) async {
+    List<Map<String, dynamic>> buyTradeLogs = await Db().getOrderedQuery(
       Db.tblTradeLog,
       '${Db.colBought} = ? and ${Db.colStockID} = ?',
       [1, stockID],
       '${Db.colDate} ASC, ${Db.colRate} ASC',
     );
 
-    List<TradeLog> buyLogs = [];
-    tuples.forEach((element) {
-      buyLogs.add(TradeLog.fromDbTuple(element));
+    List<TradeLog> buyTrades = [];
+    buyTradeLogs.forEach((element) {
+      buyTrades.add(TradeLog.fromDbTuple(element));
     });
-    return buyLogs;
+    return buyTrades;
   }
 
-  static Future<List<TradeLog>> getSellLogs(int stockID) async {
-    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
+  static Future<List<TradeLog>> getSellTrades(int stockID) async {
+    List<Map<String, dynamic>> sellTradeLogs = await Db().getOrderedQuery(
       Db.tblTradeLog,
       '${Db.colBought} = ? and ${Db.colStockID} = ?',
       [0, stockID],
       '${Db.colDate} ASC, ${Db.colRate} ASC',
     );
 
-    List<TradeLog> sellLogs = [];
-    tuples.forEach((element) {
-      sellLogs.add(TradeLog.fromDbTuple(element));
+    List<TradeLog> sellTrades = [];
+    sellTradeLogs.forEach((element) {
+      sellTrades.add(TradeLog.fromDbTuple(element));
     });
-    return sellLogs;
+    return sellTrades;
   }
 
-  static Future<int> getRowIDAfterSettingCodes(
-      String? bseCode, String? nseCode) async {
-    List<Map> tuples;
+  static Future<int> setCodesNGetStockID(String? bseCode, String? nseCode,
+      [String? name]) async {
+    List<Map> scrips;
 
     if (bseCode != null && nseCode != null) {
-      tuples = await Db().getQuery(Db.tblPortfolio,
+      scrips = await Db().getQuery(Db.tblScrips,
           '${Db.colBSECode} = ? or ${Db.colNSECode} = ?', [bseCode, nseCode]);
     } else if (bseCode != null) {
-      tuples = await Db()
-          .getQuery(Db.tblPortfolio, '${Db.colBSECode} = ?', [bseCode]);
+      scrips =
+          await Db().getQuery(Db.tblScrips, '${Db.colBSECode} = ?', [bseCode]);
     } else if (nseCode != null) {
-      tuples = await Db()
-          .getQuery(Db.tblPortfolio, '${Db.colNSECode} = ?', [nseCode]);
+      scrips =
+          await Db().getQuery(Db.tblScrips, '${Db.colNSECode} = ?', [nseCode]);
     } else {
       throw ArgumentError("Both BSE and NSE codes cannot be null!");
     }
 
-    if (tuples.length == 0) {
-      Db().insert(
-        Db.tblPortfolio,
+    if (scrips.length == 0) {
+      await Db().insert(
+        Db.tblScrips,
         {
           Db.colBSECode: bseCode,
           Db.colNSECode: nseCode,
+          Db.colName: name,
         },
       );
     } else {
       if (bseCode == null) {
-        bseCode = tuples[0][Db.colBSECode];
+        bseCode = scrips[0][Db.colBSECode];
       }
       if (nseCode == null) {
-        nseCode = tuples[0][Db.colNSECode];
+        nseCode = scrips[0][Db.colNSECode];
       }
 
-      if (tuples.length == 1) {
-        Db().updateConditionally(
-          Db.tblPortfolio,
-          {
-            Db.colBSECode: bseCode,
-            Db.colNSECode: nseCode,
-          },
+      if (scrips.length == 1) {
+        await Db().updateConditionally(
+          Db.tblScrips,
+          name == null
+              ? {
+                  Db.colBSECode: bseCode,
+                  Db.colNSECode: nseCode,
+                }
+              : {
+                  Db.colBSECode: bseCode,
+                  Db.colNSECode: nseCode,
+                  Db.colName: name,
+                },
           '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
           [bseCode, nseCode],
         );
-        return tuples.first[Db.colRowID];
+        return scrips.first[Db.colRowID];
       } else {
-        Db().deleteQuery(
-          Db.tblPortfolio,
-          '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
-          [bseCode, nseCode],
-        );
-        Db().insert(
-          Db.tblPortfolio,
-          {
-            Db.colBSECode: bseCode,
-            Db.colNSECode: nseCode,
-          },
-        );
+        await Db().transact((txn) async {
+          await txn.delete(
+            Db.tblScrips,
+            where: '${Db.colBSECode} = ? or ${Db.colNSECode} = ?',
+            whereArgs: [bseCode, nseCode],
+          );
+          await txn.insert(
+            Db.tblScrips,
+            {
+              Db.colBSECode: bseCode,
+              Db.colNSECode: nseCode,
+              Db.colName: name,
+            },
+          );
+        });
       }
     }
 
-    tuples = await Db().getQuery(Db.tblPortfolio,
+    var updatedScrips = await Db().getQuery(Db.tblScrips,
         '${Db.colBSECode} = ? or ${Db.colNSECode} = ?', [bseCode, nseCode]);
-    return tuples.first[Db.colRowID];
+    return updatedScrips.first[Db.colRowID];
   }
 
   static Future<bool> linkCodes(Map<String, String> codes) async {
-    int id = await getRowIDAfterSettingCodes(codes["BSE"], codes["NSE"]);
+    int id = await setCodesNGetStockID(codes["BSE"], codes["NSE"]);
 
     bool res = await Db().updateConditionally(
       Db.tblTradeLog,
@@ -368,7 +401,7 @@ class DatabaseActions {
     }
     Sheet excelSheet = excelFile.sheets.values.first;
     var parsedLogs = ParsedFileLogs();
-    var data = excelSheet.rows;
+
     int dateColID = 0,
         exchangeColID = 3,
         nameColID = 8,
@@ -417,7 +450,6 @@ class DatabaseActions {
       {void Function({int? current, String? message, int? total}) onUpdate =
           dummyOnUpdate}) async {
     onUpdate(message: "Parsing SBI File (old format)");
-    int mode = 0;
     Document parsedHTML = html.parse(file);
     List<String> headers = [];
 
@@ -427,7 +459,6 @@ class DatabaseActions {
 
     if (table == null) {
       table = parsedHTML.querySelector("#grdViewTradeDetail_old");
-      mode = 1;
     }
 
     if (table == null) throw FormatException("File format is not correct");
@@ -666,7 +697,18 @@ class DatabaseActions {
         try {
           await txn.insert(Db.tblTradeLog, log.toDbTuple());
           updateLater.add(log.id);
+        } on DatabaseException catch (e) {
+          onUpdate(
+              message:
+                  "Unknown Error Occurred ... \n${e.toString()}\n${log.toString()}",
+              current: i,
+              total: logs.length);
+          throw e;
+        }
+
+        try {
           await txn.insert(Db.tblTracked, {
+            Db.colStockID: log.id,
             Db.colCode: log.code,
             Db.colExch: log.exchange,
             Db.colPinned: 0,
@@ -729,8 +771,8 @@ class DatabaseActions {
       }
 
       try {
-        int id = await DatabaseActions.getRowIDAfterSettingCodes(
-            fileLog.bseCode, fileLog.nseCode);
+        int id = await DatabaseActions.setCodesNGetStockID(
+            fileLog.bseCode, fileLog.nseCode, fileLog.name);
 
         trades.add(TradeLog(fileLog.date!, id, fileLog.code!, fileLog.exchange!,
             fileLog.bought!, fileLog.qty!, fileLog.rate!));
@@ -749,30 +791,16 @@ class DatabaseActions {
   }
 
   static Future<String> getTradesCSV() async {
-    List<Map> tuples = await Db().getRawQuery(""
-        "SELECT ${Db.colDate}, T.${Db.colName} AS ${Db.colName}, "
-        "L.${Db.colCode} AS ${Db.colBSECode}, P.${Db.colNSECode} AS ${Db.colNSECode}, "
-        "L.${Db.colExch} AS ${Db.colExch}, ${Db.colBought}, "
-        "L.${Db.colQty} AS ${Db.colQty}, ${Db.colRate} "
+    List<Map> tradeLogs = await Db().getRawQuery(""
+        "SELECT "
+        "S.${Db.colName} AS ${Db.colName}, "
+        "S.${Db.colBSECode} AS ${Db.colBSECode}, "
+        "S.${Db.colNSECode} AS ${Db.colNSECode}, "
+        "${Db.colDate}, ${Db.colExch}, ${Db.colBought}, "
+        "${Db.colQty}, ${Db.colRate} "
         "FROM ${Db.tblTradeLog} L "
-        "LEFT JOIN ${Db.tblPortfolio} P "
-        "ON L.${Db.colCode} = P.${Db.colBSECode} "
-        "LEFT JOIN ${Db.tblTracked} T "
-        "ON L.${Db.colCode} = T.${Db.colCode} "
-        "WHERE "
-        "L.${Db.colExch} = 'BSE' "
-        "UNION "
-        "SELECT ${Db.colDate}, T.${Db.colName} AS ${Db.colName}, "
-        "P.${Db.colBSECode} AS ${Db.colBSECode}, L.${Db.colCode} AS ${Db.colNSECode}, "
-        "L.${Db.colExch} AS ${Db.colExch}, ${Db.colBought}, "
-        "L.${Db.colQty} AS ${Db.colQty}, ${Db.colRate} "
-        "FROM ${Db.tblTradeLog} L "
-        "LEFT JOIN ${Db.tblPortfolio} P "
-        "ON L.${Db.colCode} = P.${Db.colNSECode} "
-        "LEFT JOIN ${Db.tblTracked} T "
-        "ON L.${Db.colCode} = T.${Db.colCode} "
-        "WHERE "
-        "L.${Db.colExch} = 'NSE' "
+        "LEFT JOIN ${Db.tblScrips} S "
+        "ON L.${Db.colStockID} = S.${Db.colRowID} "
         "ORDER BY ${Db.colDate} ASC");
 
     List<List> trades = [
@@ -788,7 +816,7 @@ class DatabaseActions {
       ]
     ];
 
-    tuples.forEach((element) {
+    tradeLogs.forEach((element) {
       trades.add([
         element[Db.colDate],
         element[Db.colName],
@@ -805,39 +833,33 @@ class DatabaseActions {
     return converter.convert(trades, delimitAllFields: true);
   }
 
-  static Future<List<TradeLog>> getStockLogs(int stockId) async {
-    List<Map<String, dynamic>> tuples = await Db().getOrderedQuery(
+  static Future<List<TradeLog>> getStockTrades(int stockId) async {
+    List<Map<String, dynamic>> tradeLogs = await Db().getOrderedQuery(
         Db.tblTradeLog,
         '${Db.colStockID} = ?',
         [stockId],
-        '${Db.colDate} DESC, ${Db.colCode} ASC');
+        '${Db.colDate} DESC');
 
-    List<TradeLog> logs = [];
-    tuples.forEach((row) => logs.add(TradeLog.fromDbTuple(row)));
-    return logs;
+    List<TradeLog> trades = [];
+    tradeLogs.forEach((row) => trades.add(TradeLog.fromDbTuple(row)));
+    return trades;
   }
 
   static Future<List<Stock>?> getPinnedStocks() async {
     try {
-      List<Map<String, dynamic>> tuples = await Db().getRawQuery("SELECT * "
-          "FROM ${Db.tblTracked} T "
-          "LEFT JOIN ${Db.tblPortfolio} P "
-          "ON T.${Db.colCode} = P.${Db.colBSECode} "
-          "WHERE "
-          "T.${Db.colExch} = 'BSE' "
-          "AND ${Db.colPinned} = 1 "
-          "UNION "
-          "SELECT * "
-          "FROM ${Db.tblTracked} T "
-          "LEFT JOIN ${Db.tblPortfolio} P "
-          "ON T.${Db.colCode} = P.${Db.colNSECode} "
-          "WHERE "
-          "T.${Db.colExch} = 'NSE' "
-          "AND ${Db.colPinned} = 1 "
-          "ORDER BY ${Db.colName} ASC, ${Db.colCode} ASC");
+      List<Map<String, dynamic>> trackedPinned =
+          await Db().getRawQuery("SELECT * "
+              "FROM ${Db.tblTracked} T "
+              "LEFT JOIN ${Db.tblScrips} S "
+              "ON T.${Db.colStockID} = S.${Db.colRowID} "
+              "LEFT JOIN ${Db.tblPortfolio} P "
+              "ON T.${Db.colStockID} = P.${Db.colStockID} "
+              "WHERE "
+              "${Db.colPinned} = 1 "
+              "ORDER BY ${Db.colName} ASC");
 
       List<Stock> stocks = [];
-      tuples.forEach((row) => stocks.add(Stock.fromDbTuple(row)));
+      trackedPinned.forEach((row) => stocks.add(Stock.fromDbTuple(row)));
       return stocks;
     } catch (e) {
       dev.log(e.toString());
@@ -847,30 +869,37 @@ class DatabaseActions {
 
   static Future<List<Stock>?> getUnpinnedStocks() async {
     try {
-      List<Map<String, dynamic>> tuples = await Db().getRawQuery("SELECT * "
-          "FROM ${Db.tblTracked} T "
-          "LEFT JOIN ${Db.tblPortfolio} P "
-          "ON T.${Db.colCode} = P.${Db.colBSECode} "
-          "WHERE "
-          "T.${Db.colExch} = 'BSE' "
-          "AND ${Db.colPinned} = 0 "
-          "UNION "
-          "SELECT * "
-          "FROM ${Db.tblTracked} T "
-          "LEFT JOIN ${Db.tblPortfolio} P "
-          "ON T.${Db.colCode} = P.${Db.colNSECode} "
-          "WHERE "
-          "T.${Db.colExch} = 'NSE' "
-          "AND ${Db.colPinned} = 0 "
-          "ORDER BY ${Db.colName} ASC, ${Db.colCode} ASC");
+      List<Map<String, dynamic>> trackedUnpinned =
+          await Db().getRawQuery("SELECT * "
+              "FROM ${Db.tblTracked} T "
+              "LEFT JOIN ${Db.tblScrips} S "
+              "ON T.${Db.colStockID} = S.${Db.colRowID} "
+              "LEFT JOIN ${Db.tblPortfolio} P "
+              "ON T.${Db.colStockID} = P.${Db.colStockID} "
+              "WHERE "
+              "${Db.colPinned} = 0 "
+              "ORDER BY ${Db.colName} ASC");
 
       List<Stock> stocks = [];
-      tuples.forEach((row) => stocks.add(Stock.fromDbTuple(row)));
+      trackedUnpinned.forEach((row) => stocks.add(Stock.fromDbTuple(row)));
       return stocks;
     } catch (e) {
       dev.log(e.toString());
       return null;
     }
+  }
+
+  static Future<bool> setScripName(
+      String exchange, String? name, String code) async {
+    String codeCol = "";
+    if (exchange == "BSE") {
+      codeCol = Db.colBSECode;
+    } else if (exchange == "NSE") {
+      codeCol = Db.colNSECode;
+    }
+
+    return await Db().updateConditionally(Db.tblScrips,
+        {Db.colName: name?.toUpperCase()}, '$codeCol = ?', [code]);
   }
 
   static Future<bool> updatePinned(
@@ -892,19 +921,9 @@ class DatabaseActions {
   }
 
   static Future<bool> addTracked(
-      String code, String exchange, String? name, bool pinned) async {
-    return await Db().insert(Db.tblTracked, {
-      Db.colCode: code,
-      Db.colExch: exchange,
-      Db.colPinned: pinned ? 1 : 0,
-      Db.colName: name,
-    });
-  }
-
-  static Future<Object?> updateCode(
-      String oldCode, String exch, String newCode) async {
+      String code, String exchange, bool pinned) async {
     String codeCol = "";
-    switch (exch) {
+    switch (exchange) {
       case "BSE":
         codeCol = Db.colBSECode;
         break;
@@ -914,26 +933,65 @@ class DatabaseActions {
     }
 
     return await Db().transact((txn) async {
-      await txn.update(Db.tblTracked, {Db.colCode: newCode},
-          where: '${Db.colCode} = ? and ${Db.colExch} = ?',
-          whereArgs: [oldCode, exch]);
-      List<Map> tuples = await txn
-          .query(Db.tblPortfolio, where: '$codeCol = ?', whereArgs: [newCode]);
-      if (tuples.length == 0) {
-        await txn.update(Db.tblPortfolio, {codeCol: newCode},
-            where: '$codeCol = ?', whereArgs: [oldCode]);
-        tuples = await txn.query(Db.tblPortfolio,
-            where: '$codeCol = ?', whereArgs: [newCode]);
+      // Check if Scrips has the newCode already
+      List<Map> scrips = await txn
+          .query(Db.tblScrips, where: '$codeCol = ?', whereArgs: [code]);
+
+      // If not present then update the oldCode with newCode
+      if (scrips.length == 0) {
+        await txn.insert(Db.tblScrips, {codeCol: code});
+        scrips = await txn
+            .query(Db.tblScrips, where: '$codeCol = ?', whereArgs: [code]);
       }
-      await txn.update(Db.tblTradeLog,
-          {Db.colStockID: tuples.first[Db.colRowID], Db.colCode: newCode},
+
+      await txn.insert(Db.tblTracked, {
+        Db.colStockID: scrips.first[Db.colRowID],
+        Db.colCode: code,
+        Db.colExch: exchange,
+        Db.colPinned: pinned ? 1 : 0,
+      });
+    }).then((value) => true);
+  }
+
+  static Future<Object?> updateCode(
+      String oldCode, String exchange, String newCode) async {
+    String codeCol = "";
+    switch (exchange) {
+      case "BSE":
+        codeCol = Db.colBSECode;
+        break;
+      case "NSE":
+        codeCol = Db.colNSECode;
+        break;
+    }
+
+    return await Db().transact((txn) async {
+      // Check if Scrips has the newCode already
+      List<Map> scrips = await txn
+          .query(Db.tblScrips, where: '$codeCol = ?', whereArgs: [newCode]);
+
+      // If not present then update the oldCode with newCode
+      if (scrips.length == 0) {
+        await txn.update(Db.tblScrips, {codeCol: newCode},
+            where: '$codeCol = ?', whereArgs: [oldCode]);
+        scrips = await txn
+            .query(Db.tblScrips, where: '$codeCol = ?', whereArgs: [newCode]);
+      }
+
+      // Update Tracked table replacing oldCode with newCode
+      await txn.update(Db.tblTracked,
+          {Db.colStockID: scrips.first[Db.colRowID], Db.colCode: newCode},
           where: '${Db.colCode} = ? and ${Db.colExch} = ?',
-          whereArgs: [oldCode, exch]);
+          whereArgs: [oldCode, exchange]);
+      await txn.update(Db.tblTradeLog,
+          {Db.colStockID: scrips.first[Db.colRowID], Db.colCode: newCode},
+          where: '${Db.colCode} = ? and ${Db.colExch} = ?',
+          whereArgs: [oldCode, exchange]);
       return;
     }).then((value) async {
-      List<Map> tuples =
-          await Db().getQuery(Db.tblPortfolio, '$codeCol = ?', [newCode]);
-      updatePortfolioFigures(tuples.first[Db.colRowID]);
+      List<Map> scrips =
+          await Db().getQuery(Db.tblScrips, '$codeCol = ?', [newCode]);
+      updatePortfolioFigures(scrips.first[Db.colRowID]);
       return value;
     });
   }

@@ -17,7 +17,7 @@ class _PortfolioViewState extends State<PortfolioView> {
   @override
   void initState() {
     super.initState();
-    _getPortfolioFuture = DatabaseActions.getAllPortfolios();
+    _getPortfolioFuture = DatabaseActions.getAllPortfolioLogs();
   }
 
   @override

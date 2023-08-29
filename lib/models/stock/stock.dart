@@ -15,7 +15,7 @@ class Stock {
         _tracked = Tracked.fromDbTuple(tuple),
         _latest = Latest();
 
-  int? get id => _portfolio.rowid;
+  int? get id => _portfolio.stockID;
 
   String? get name => _tracked.name;
 
@@ -23,21 +23,21 @@ class Stock {
 
   String get code => _tracked.code;
 
-  int? get qty => _portfolio?.qty;
+  int? get qty => _portfolio.qty;
 
-  double? get msr => _portfolio?.msr;
+  double? get msr => _portfolio.msr;
 
-  double? get esr => _portfolio?.esr;
+  double? get esr => _portfolio.esr;
 
-  double? get lastValue => _latest?.value;
+  double? get lastValue => _latest.value;
 
-  String? get change => _latest?.change;
+  String? get change => _latest.change;
 
-  String? get percentChange => _latest?.percentageChange;
+  String? get percentChange => _latest.percentageChange;
 
-  String? get lastUpdated => _latest?.updated;
+  String? get lastUpdated => _latest.updated;
 
-  int get changeSign => _latest?.sign ?? 0;
+  int get changeSign => _latest.sign;
 
   double? get netAmount => (netPerStock == null || qty == null || qty == 0)
       ? null

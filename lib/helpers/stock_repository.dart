@@ -1,4 +1,4 @@
-import 'package:folio/services/database/database.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/models/stock/latest.dart';
 import 'package:folio/services/query/query_api.dart';
 
@@ -15,11 +15,8 @@ class StockRepository {
 
   static Future<String?> getName(String code, String exchange) async {
     String? name = await QueryAPI.getName(exchange: exchange, code: code);
-    await Db().updateConditionally(
-        Db.tblTracked,
-        {Db.colName: name?.toUpperCase()},
-        '${Db.colCode} = ? and ${Db.colExch} = ?',
-        [code, exchange]);
+    
+    DatabaseActions.setScripName(exchange, name, code);
     return name?.toUpperCase();
   }
 

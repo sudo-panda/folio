@@ -17,7 +17,7 @@ class _TradesViewState extends State<TradesView> {
   @override
   void initState() {
     super.initState();
-    _getLogsFuture = DatabaseActions.getAllLogs();
+    _getLogsFuture = DatabaseActions.getAllTrades();
   }
 
   @override
