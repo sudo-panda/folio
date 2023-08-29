@@ -10,9 +10,10 @@ class Db {
   factory Db() => _instance;
   static Database? _db;
 
-  static String tblTracked = 'Tracked';
-  static String tblPortfolio = 'Portfolio';
-  static String tblTradeLog = 'TradeLog';
+  static String tblTracked = 'TrackedTBL';
+  static String tblPortfolio = 'PortfolioTBL';
+  static String tblTradeLog = 'TradeLogTBL';
+  static String tblScrips = 'ScripsTBL';
 
   static String colStockID = 'stock_id';
   static String colRowID = 'rowid';
@@ -23,7 +24,9 @@ class Db {
   static String colName = 'name';
   static String colKey = 'key';
   static String colQty = 'qty';
+  static String colGrossQty = 'gross_qty';
   static String colRate = 'rate';
+  static String colAvgRate = 'avg_rate';
   static String colMSR = 'min_sell_rate';
   static String colESR = 'est_sell_rate';
   static String colPinned = 'pinned';
@@ -49,17 +52,17 @@ class Db {
 
   void _onCreate(Database db, int version) async {
     await db.execute('CREATE TABLE $tblTracked ('
+        '$colStockID INTEGER,' // Not UNIQUE as one of BSE and one of NSE
         '$colCode TEXT,'
         '$colExch TEXT,'
-        '$colName TEXT,'
         '$colPinned INTEGER,'
         'PRIMARY KEY ($colCode, $colExch)'
         ')');
     await db.execute('CREATE TABLE $tblPortfolio ('
         '$colRowID INTEGER PRIMARY KEY, '
-        '$colBSECode TEXT UNIQUE, '
-        '$colNSECode TEXT UNIQUE, '
-        '$colQty INTEGER, '
+        '$colStockID INTEGER UNIQUE,'
+        '$colGrossQty INTEGER, '
+        '$colAvgRate REAL, '
         '$colMSR REAL, '
         '$colESR REAL'
         ')');
@@ -73,6 +76,12 @@ class Db {
         '$colQty INTEGER, '
         '$colRate REAL'
         ')');
+    await db.execute('CREATE TABLE $tblScrips ('
+        '$colRowID INTEGER PRIMARY KEY, '
+        '$colBSECode TEXT UNIQUE, '
+        '$colNSECode TEXT UNIQUE, '
+        '$colName TEXT'
+        ')');
   }
 
   void deleteDb() async {
@@ -85,12 +94,6 @@ class Db {
   void deleteDbThenInit() async {
     deleteDb();
     _db = await initDb();
-  }
-
-  Future<int> saveTuple(String table, Map<String, dynamic> tuple) async {
-    var dbClient = await db;
-    int res = await dbClient.insert(table, tuple);
-    return res;
   }
 
   Future<int?> getTotalCount(String table) async {
@@ -138,7 +141,8 @@ class Db {
         where: where, whereArgs: whereArgs, orderBy: orderBy);
   }
 
-  Future<List<Map<String, dynamic>>> getOrdered(String table, String orderBy) async {
+  Future<List<Map<String, dynamic>>> getOrdered(
+      String table, String orderBy) async {
     var dbClient = await db;
     return await dbClient.query(table, orderBy: orderBy);
   }
@@ -177,5 +181,20 @@ class Db {
   Future<T> transact<T>(Future<T> Function(Transaction) transaction) async {
     var dbClient = await db;
     return await dbClient.transaction(transaction);
+  }
+
+  Future<List<Map<String, dynamic>>> getPortfolioView() async {
+    return Db().getRawQuery(""
+        "SELECT "
+        "P.${Db.colRowID} AS ${Db.colRowID}, "
+        "P.${Db.colStockID} AS ${Db.colStockID}, "
+        "S.${Db.colName} AS ${Db.colName}, "
+        "S.${Db.colNSECode} AS ${Db.colNSECode}, "
+        "S.${Db.colBSECode} AS ${Db.colBSECode}, "
+        "${Db.colGrossQty}, ${Db.colAvgRate}, ${Db.colMSR}, ${Db.colESR}, "
+        ""
+        "FROM ${Db.tblPortfolio} P "
+        "LEFT JOIN ${Db.tblScrips} S "
+        "ON P.${Db.colStockID} = S.${Db.colRowID} ");
   }
 }

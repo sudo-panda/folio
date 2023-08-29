@@ -23,7 +23,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
   void initState() {
     super.initState();
     _stock = widget.stock;
-    _isRefreshing = _stock?.lastValue == null;
+    _isRefreshing = _stock.lastValue == null;
   }
 
   @override
@@ -102,7 +102,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                   child: IconButton(
                     padding: EdgeInsets.all(0.0),
                     icon:
-                        Icon(_stock.pinned ?? false ? Folio.unpin : Folio.pin),
+                        Icon(_stock.pinned ? Folio.unpin : Folio.pin),
                     iconSize: 25.0,
                     splashRadius: 25.0,
                     onPressed: () {
@@ -118,7 +118,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                         }
                       });
                     },
-                    tooltip: _stock.pinned ?? false ? "Unpin" : "Pin",
+                    tooltip: _stock.pinned ? "Unpin" : "Pin",
                   ),
                 ),
                 SizedBox(
@@ -139,7 +139,6 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                         DatabaseActions.addTracked(
                           _stock.code,
                           _stock.exchange,
-                          _stock.name,
                           _stock.pinned,
                         );
                       }
@@ -202,7 +201,7 @@ class _TrackedBottomSheetState extends State<TrackedBottomSheet> {
                   ),
                   MapTile(
                     name: "NET/STK",
-                    value: _stock?.netPerStock?.toStringAsFixed(2) ?? "—",
+                    value: _stock.netPerStock?.toStringAsFixed(2) ?? "—",
                   ),
                 ],
               ),

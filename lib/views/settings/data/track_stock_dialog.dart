@@ -141,7 +141,7 @@ class _TrackStockDialogState extends State<TrackStockDialog> {
                       onPressed: () {
                         if (_formKey.currentState != null && _formKey.currentState!.validate()) {
                           DatabaseActions.addTracked(
-                                  _codeCtl.text, _selectedExch, "", false)
+                                  _codeCtl.text, _selectedExch, false)
                               .then(
                             (value) {
                               if (value) {

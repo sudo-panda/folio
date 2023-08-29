@@ -1,7 +1,7 @@
 import 'package:folio/services/database/database.dart';
 
 class Portfolio {
-  late int? rowid;
+  late int? stockID;
   late String? name;
   late String? bseCode;
   late String? nseCode;
@@ -10,19 +10,20 @@ class Portfolio {
   late double? esr;
 
   Portfolio.fromDbTuple(Map<String, dynamic> tuple) {
-    rowid = tuple["rowid"];
+    stockID = tuple[Db.colStockID];
     bseCode = tuple[Db.colBSECode];
     nseCode = tuple[Db.colNSECode];
-    qty = tuple[Db.colQty];
+    qty = tuple[Db.colGrossQty];
     msr = tuple[Db.colMSR];
     esr = tuple[Db.colESR];
   }
 
   Map<String, dynamic> toDbTuple() {
     return {
+      Db.colStockID: stockID,
       Db.colBSECode: bseCode,
       Db.colNSECode: nseCode,
-      Db.colQty: qty,
+      Db.colGrossQty: qty,
       Db.colMSR: msr,
       Db.colESR: esr,
     };

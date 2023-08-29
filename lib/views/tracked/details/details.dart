@@ -69,11 +69,11 @@ class _DetailsViewState extends State<DetailsView>
     }
 
     if (_stock.id != null) {
-      _summary = TradeSummary(DatabaseActions.getBuyLogs(_stock.id!),
-          DatabaseActions.getSellLogs(_stock.id!));
+      _summary = TradeSummary(DatabaseActions.getBuyTrades(_stock.id!),
+          DatabaseActions.getSellTrades(_stock.id!));
 
       _futureSummary = _summary.calculateSummary(0);
-      _futureLogs = DatabaseActions.getStockLogs(_stock.id!);
+      _futureLogs = DatabaseActions.getStockTrades(_stock.id!);
     }
 
     _tabController = new TabController(vsync: this, length: 4);
