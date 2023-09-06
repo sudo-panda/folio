@@ -284,6 +284,7 @@ class _DriveAreaState extends State<DriveArea> {
           .get(id, downloadOptions: drive.DownloadOptions.fullMedia);
 
       final path = await DatabaseActions.getDbPath();
+      // TODO: Check if this works
       final saveFile = File(path);
       await saveFile.writeAsString(file.toString(), flush: true);
     }

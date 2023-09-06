@@ -2,11 +2,13 @@ import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:csv/csv_settings_autodetection.dart';
+import 'package:folio/models/database/scrip.dart';
 import 'package:folio/services/database/database.dart';
 import 'package:folio/models/database/trade_log.dart';
 import 'package:folio/models/database/portfolio.dart';
 import 'package:folio/models/stock/stock.dart';
 import 'package:folio/state/globals.dart';
+import 'package:folio/views/settings/data/import_scrips_list/parsed_scrips.dart';
 
 import 'package:html/parser.dart' as html;
 import 'package:sqflite/sqflite.dart';
@@ -16,7 +18,19 @@ import 'package:excel/excel.dart';
 
 import '../models/trade/parsed_file_logs.dart';
 
+class DataException implements Exception {
+  final String message;
+
+  DataException(this.message); // Pass your message in constructor.
+
+  @override
+  String toString() {
+    return message;
+  }
+}
+
 class DatabaseActions {
+  static const String delimiter = "; ";
   static void dummyOnUpdate({int? current, String? message, int? total}) {}
 
   static Future<String> getDbPath() async => await Db().getDbPath();
@@ -69,12 +83,7 @@ class DatabaseActions {
     int qty,
     double rate,
   ) async {
-    String codeCol = "";
-    if (exchange == "BSE") {
-      codeCol = Db.colBSECode;
-    } else if (exchange == "NSE") {
-      codeCol = Db.colNSECode;
-    }
+    String codeCol = getCodeCol(exchange);
     var scrips = await Db().getQuery(Db.tblScrips, "$codeCol = ?", [code]);
 
     if (scrips.length > 1) {
@@ -293,6 +302,48 @@ class DatabaseActions {
     return sellTrades;
   }
 
+  static Future<List<Map<String, dynamic>>> getScripsFromOldCode(
+      String exchange, String code) async {
+    var res = await Db().getQuery(
+        Db.tblScrips, "${getOldCodesCol(exchange)} LIKE ?", ["%$code%"]);
+    return res;
+  }
+
+  static Future<List<Map<String, dynamic>>> getScripsFromCode(
+      String exchange, String code) async {
+    var res = await Db()
+        .getQuery(Db.tblScrips, "${getCodeCol(exchange)} = ?", [code]);
+    return res;
+  }
+
+  static Future<List<Map<String, dynamic>>> getScripsFromName(
+      String name) async {
+    var res = await Db().getQuery(
+        Db.tblScrips, "${Db.colName} LIKE ?", ["${getNormalizedName(name)}%"]);
+    return res;
+  }
+
+  static Future<bool> isOldCodePresent(String exchange, String code) async {
+    return (await getScripsFromOldCode(exchange, code)).length != 0;
+  }
+
+  static Future<bool> isCodePresent(String exchange, String code) async {
+    var tuples = await getScripsFromCode(exchange, code);
+    return tuples.length != 0;
+  }
+
+  static Future<bool> isScripNamePresent(String name) async {
+    var tuples = await getScripsFromName(name);
+    return tuples.length != 0;
+  }
+
+  static Future<List<Scrip>?> getAllScrips() async {
+    var scripsTuple = await Db().getOrdered(Db.tblScrips, "${Db.colName} ASC");
+    List<Scrip> scripsList = [];
+    scripsTuple.forEach((row) => scripsList.add(Scrip.fromDbTuple(row)));
+    return scripsList;
+  }
+
   static Future<int> setCodesNGetStockID(String? bseCode, String? nseCode,
       [String? name]) async {
     List<Map> scrips;
@@ -430,7 +481,7 @@ class DatabaseActions {
         date = DateTime.utc(year, month, day);
       }
       String? exchange = row[exchangeColID]?.value.toString().trim();
-      String? name = row[nameColID]?.value.toString();
+      String? name = getNormalizedName(row[nameColID]?.value.toString());
       bool? bought = row[boughtColID]?.value.toString() == "B";
       int? qty = row[qtyColID] == null
           ? null
@@ -493,14 +544,16 @@ class DatabaseActions {
       for (var cell in row.querySelectorAll("td")) {
         switch (headers[colNum]) {
           case "Date":
-            date = DateTime.utc(
-                int.parse(cell.innerHtml
-                    .substring(cell.innerHtml.lastIndexOf('/') + 1)),
-                int.parse(cell.innerHtml.substring(
-                    cell.innerHtml.indexOf('/') + 1,
-                    cell.innerHtml.lastIndexOf('/'))),
-                int.parse(
-                    cell.innerHtml.substring(0, cell.innerHtml.indexOf('/'))));
+            try {
+              date = DateTime.utc(
+                  int.parse(cell.innerHtml
+                      .substring(cell.innerHtml.lastIndexOf('/') + 1)),
+                  int.parse(cell.innerHtml.substring(
+                      cell.innerHtml.indexOf('/') + 1,
+                      cell.innerHtml.lastIndexOf('/'))),
+                  int.parse(cell.innerHtml
+                      .substring(0, cell.innerHtml.indexOf('/'))));
+            } catch (e) {}
             break;
           case "Exch":
             exchange = cell.innerHtml.trim();
@@ -517,16 +570,24 @@ class DatabaseActions {
                 .trim();
             break;
           case "Buy Qty":
-            buyQty = int.parse(cell.innerHtml.trim());
+            try {
+              buyQty = int.parse(cell.innerHtml.trim());
+            } catch (e) {}
             break;
           case "Sold Qty":
-            sellQty = int.parse(cell.innerHtml.trim());
+            try {
+              sellQty = int.parse(cell.innerHtml.trim());
+            } catch (e) {}
             break;
           case "Buy Rate":
-            buyRate = double.parse(cell.innerHtml.trim());
+            try {
+              buyRate = double.parse(cell.innerHtml.trim());
+            } catch (e) {}
             break;
           case "Sold Rate":
-            sellRate = double.parse(cell.innerHtml.trim());
+            try {
+              sellRate = double.parse(cell.innerHtml.trim());
+            } catch (e) {}
             break;
           default:
             break;
@@ -588,29 +649,31 @@ class DatabaseActions {
       double? rate;
       bool? bought;
 
-      int i = 0;
+      int colNum = 0;
       for (var element in row) {
-        switch (trades.first[i]) {
+        switch (trades.first[colNum]) {
           case "Date":
             if (element == "null") break;
 
-            date = DateTime.utc(
-              int.parse(
-                element.substring(
-                  0,
-                  element.indexOf('-'),
+            try {
+              date = DateTime.utc(
+                int.parse(
+                  element.substring(
+                    0,
+                    element.indexOf('-'),
+                  ),
                 ),
-              ),
-              int.parse(
-                element.substring(
-                  element.indexOf('-') + 1,
-                  element.lastIndexOf('-'),
+                int.parse(
+                  element.substring(
+                    element.indexOf('-') + 1,
+                    element.lastIndexOf('-'),
+                  ),
                 ),
-              ),
-              int.parse(
-                element.substring(element.lastIndexOf('-') + 1),
-              ),
-            );
+                int.parse(
+                  element.substring(element.lastIndexOf('-') + 1),
+                ),
+              );
+            } catch (e) {}
             break;
           case "Exchange":
             if (element == "null") break;
@@ -618,7 +681,7 @@ class DatabaseActions {
             break;
           case "Name":
             if (element == "null") break;
-            name = element;
+            name = getNormalizedName(element);
             break;
           case "BSE Code":
             if (element == "null") break;
@@ -630,11 +693,15 @@ class DatabaseActions {
             break;
           case "Quantity":
             if (element == "null") break;
-            qty = int.parse(element.toString());
+            try {
+              qty = int.parse(element.toString());
+            } catch (e) {}
             break;
           case "Rate":
             if (element == "null") break;
-            rate = double.parse(element.toString());
+            try {
+              rate = double.parse(element.toString());
+            } catch (e) {}
             break;
           case "BUY/SELL":
             if (element == "null") break;
@@ -650,7 +717,7 @@ class DatabaseActions {
           default:
             break;
         }
-        i++;
+        colNum++;
       }
       switch (exchange) {
         case "BSE":
@@ -767,20 +834,22 @@ class DatabaseActions {
           fileLog.rate == null) {
         onUpdate(
             message: "Invalid logs found!", current: i, total: logs.length);
-        throw Exception("Invalid logs found!");
+        throw DataException("Invalid logs found!");
       }
 
-      try {
-        int id = await DatabaseActions.setCodesNGetStockID(
-            fileLog.bseCode, fileLog.nseCode, fileLog.name);
+      if (fileLog.stockID == null) {
+        var res = await DatabaseActions.getScripsFromCode(
+            fileLog.exchange!, fileLog.code!);
 
-        trades.add(TradeLog(fileLog.date!, id, fileLog.code!, fileLog.exchange!,
-            fileLog.bought!, fileLog.qty!, fileLog.rate!));
-      } catch (e) {
-        onUpdate(
-            message: "Unknown Error Occurred!", current: i, total: logs.length);
-        throw e;
+        if (res.length == 0)
+          throw DataException(
+              "Stock of ${fileLog.name} not present in securities list");
+
+        fileLog.stockID = Scrip.fromDbTuple(res.first).stockID;
       }
+
+      trades.add(TradeLog(fileLog.date!, fileLog.stockID!, fileLog.code!,
+          fileLog.exchange!, fileLog.bought!, fileLog.qty!, fileLog.rate!));
 
       i++;
     }
@@ -788,6 +857,159 @@ class DatabaseActions {
     await addTradeLogs(trades, onUpdate: onUpdate);
 
     return trades;
+  }
+
+  static Future<ParsedScripsList> parseCSVScripsFile(
+      String exchange, String file,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    onUpdate(message: "Parsing Scrips File");
+    var detector = FirstOccurrenceSettingsDetector(eols: ['\r\n', '\n']);
+    List<List<dynamic>> scrips =
+        const CsvToListConverter().convert(file, csvSettingsDetector: detector);
+
+    Map<String, ParsedScrip> scripsMap = {};
+
+    switch (exchange) {
+      case "BSE":
+        int i = 0;
+        onUpdate(
+            message: "Parsing BSE Scrips File",
+            current: i,
+            total: scrips.length - 1);
+        for (var row in scrips.skip(1)) {
+          onUpdate(
+              message: "Parsing BSE Scrips File",
+              current: ++i,
+              total: scrips.length - 1);
+
+          String code = row[0].toString();
+          String name = getNormalizedName(row[3].toString())!;
+          bool isActive = (row[4].toString() == "Active");
+          if (scripsMap[name] == null) {
+            if (isActive)
+              scripsMap[name] = ParsedScrip(name, code);
+            else
+              scripsMap[name] = ParsedScrip(name, null, [code]);
+          } else {
+            if (isActive) {
+              if (scripsMap[name]!.newCode == null)
+                scripsMap[name]!.newCode = code;
+              else {
+                scripsMap[name]!.oldCodes.add(code);
+                // onUpdate(
+                //     message: "Two codes ${scripsMap[name]!.newCode} & $code for"
+                //         " the same stock $name found!",
+                //     current: i,
+                //     total: null);
+                // throw DataException("Two codes ${scripsMap[name]!.newCode} & $code for"
+                //     " the same stock $name found!");
+              }
+            } else {
+              scripsMap[name]!.oldCodes.add(code);
+            }
+          }
+        }
+
+        break;
+      case "NSE":
+        int i = 0;
+        onUpdate(
+            message: "Parsing NSE Scrips File",
+            current: i,
+            total: scrips.length - 1);
+        for (var row in scrips.skip(1)) {
+          onUpdate(
+              message: "Parsing NSE Scrips File",
+              current: ++i,
+              total: scrips.length - 1);
+
+          String code = row[0].toString();
+          String name = getNormalizedName(row[1].toString())!;
+          scripsMap[name] = ParsedScrip(name, code);
+        }
+
+        break;
+    }
+
+    ParsedScripsList scripsList = ParsedScripsList(exchange);
+    int i = 0, total = scripsMap.values.length;
+    onUpdate(message: "Checking Parsed Scrips", current: i, total: total);
+
+    for (var scrip in scripsMap.values) {
+      onUpdate(message: "Checking Parsed Scrips", current: ++i, total: total);
+
+      ParsedScrip checkedScrip = ParsedScrip.from(scrip);
+
+      for (var oldCode in scrip.oldCodes) {
+        if (await isOldCodePresent(exchange, oldCode) ||
+            await isCodePresent(exchange, oldCode)) {
+          checkedScrip.oldCodes.remove(oldCode);
+        }
+      }
+
+      if (checkedScrip.oldCodes.length == 0) {
+        if (scrip.newCode == null ||
+            await isCodePresent(exchange, scrip.newCode!)) {
+          continue;
+        }
+      }
+
+      if (scrip.newCode != null) {
+        var newCodeScrip = await getScripsFromOldCode(exchange, scrip.newCode!);
+        if (newCodeScrip.length != 0) {
+          checkedScrip.newCode = newCodeScrip.first[getCodeCol(exchange)];
+        }
+      }
+
+      scripsList.addNew(checkedScrip);
+    }
+
+    onUpdate(message: "Done", current: total, total: total);
+
+    return scripsList;
+  }
+
+  static addScrips(ParsedScripsList scripsList,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    var exchange = scripsList.exchange, total = scripsList.newScrips.length;
+
+    int i = 0;
+    onUpdate(message: "Importing Scrips", current: i, total: total);
+
+    for (var scrip in scripsList.newScrips) {
+      onUpdate(message: "Importing Scrips", current: ++i, total: total);
+      var scripTuple = await getScripsFromName(scrip.name);
+      if (scripTuple.length == 0) {
+        Scrip newScrip = Scrip(getNormalizedName(scrip.name)!);
+        newScrip.setCode(exchange, scrip.newCode);
+        newScrip.setOldCodes(exchange, scrip.oldCodes);
+        Db().insert(Db.tblScrips, newScrip.toDbTuple());
+      } else {
+        Scrip existingScrip = Scrip.fromDbTuple(scripTuple.first);
+        String? existingCode = existingScrip.code(exchange);
+        List<String> existingOldCodes = existingScrip.oldCodes(exchange);
+        for (var oldCode in scrip.oldCodes) {
+          if (!existingOldCodes.contains(oldCode)) {
+            existingOldCodes.add(oldCode);
+          }
+        }
+
+        if (scrip.newCode == null && existingCode != null) {
+          existingOldCodes.add(existingCode);
+        }
+
+        Db().updateConditionally(
+            Db.tblScrips,
+            {
+              getCodeCol(exchange): scrip.newCode,
+              getOldCodesCol(exchange): existingOldCodes.join(delimiter)
+            },
+            "${Db.colName} = ?",
+            [getNormalizedName(scrip.name)]);
+      }
+    }
   }
 
   static Future<String> getTradesCSV() async {
@@ -889,17 +1111,40 @@ class DatabaseActions {
     }
   }
 
-  static Future<bool> setScripName(
-      String exchange, String? name, String code) async {
-    String codeCol = "";
-    if (exchange == "BSE") {
-      codeCol = Db.colBSECode;
-    } else if (exchange == "NSE") {
-      codeCol = Db.colNSECode;
+  static Future<String> getScripCode(String name, String exchange) async {
+    var scrips = await Db()
+        .getQuery(Db.tblScrips, "${Db.colName} = ?", [getNormalizedName(name)]);
+    return scrips.first[getCodeCol(exchange)];
+  }
+
+  static String getCodeCol(String exchange) {
+    switch (exchange) {
+      case "BSE":
+        return Db.colBSECode;
+      case "NSE":
+        return Db.colNSECode;
     }
 
+    return "";
+  }
+
+  static String getOldCodesCol(String exchange) {
+    switch (exchange) {
+      case "BSE":
+        return Db.colOldBSECodes;
+      case "NSE":
+        return Db.colOldNSECodes;
+    }
+
+    return "";
+  }
+
+  static Future<bool> setScripName(
+      String exchange, String name, String code) async {
+    String codeCol = getCodeCol(exchange);
+
     return await Db().updateConditionally(Db.tblScrips,
-        {Db.colName: name?.toUpperCase()}, '$codeCol = ?', [code]);
+        {Db.colName: getNormalizedName(name)}, '$codeCol = ?', [code]);
   }
 
   static Future<bool> updatePinned(
@@ -922,15 +1167,7 @@ class DatabaseActions {
 
   static Future<bool> addTracked(
       String code, String exchange, bool pinned) async {
-    String codeCol = "";
-    switch (exchange) {
-      case "BSE":
-        codeCol = Db.colBSECode;
-        break;
-      case "NSE":
-        codeCol = Db.colNSECode;
-        break;
-    }
+    String codeCol = getCodeCol(exchange);
 
     return await Db().transact((txn) async {
       // Check if Scrips has the newCode already
@@ -955,15 +1192,7 @@ class DatabaseActions {
 
   static Future<Object?> updateCode(
       String oldCode, String exchange, String newCode) async {
-    String codeCol = "";
-    switch (exchange) {
-      case "BSE":
-        codeCol = Db.colBSECode;
-        break;
-      case "NSE":
-        codeCol = Db.colNSECode;
-        break;
-    }
+    String codeCol = getCodeCol(exchange);
 
     return await Db().transact((txn) async {
       // Check if Scrips has the newCode already
@@ -998,5 +1227,109 @@ class DatabaseActions {
 
   static void deleteDbThenInit() {
     Db().deleteDbThenInit();
+  }
+
+  static Future<ParsedFileLogs> resolveInvalidLogs(ParsedFileLogs logs,
+      {void Function({int? current, String? message, int? total}) onUpdate =
+          dummyOnUpdate}) async {
+    int i = 0;
+    onUpdate(
+        message: "Trying to fix invalid logs",
+        current: i,
+        total: logs.invalidLogs.length);
+    List<int> removeIndexes = [];
+    for (var log in logs.invalidLogs) {
+      onUpdate(
+          message: "Trying to fix invalid logs",
+          current: i + 1,
+          total: logs.invalidLogs.length);
+      // Find code if not present
+      if (log.code == null && log.name != null && log.exchange != null) {
+        var scripsTuple = await getScripsFromName(log.name!);
+        if (scripsTuple.length != 0) {
+          var scrip = Scrip.fromDbTuple(scripsTuple.first);
+          log.bseCode = scrip.bseCode;
+          log.nseCode = scrip.nseCode;
+          log.stockID = scrip.stockID;
+        }
+      }
+
+      if (log.date != null &&
+          log.code != null &&
+          log.exchange != null &&
+          log.bought != null &&
+          log.qty != null &&
+          log.rate != null) {
+        logs.validLogs.add(log);
+        removeIndexes.add(i);
+      }
+
+      i++;
+    }
+
+    for (var index in removeIndexes.reversed) {
+      logs.invalidLogs.removeAt(index);
+    }
+
+    return logs;
+  }
+
+  /// Normalize stock names to prevent string matching problems
+  static String? getNormalizedName(String? name) {
+    if (name == null) return null;
+    name = name.toUpperCase().trim();
+
+    // BSE List of scrips contain these unnecessary characters at the end
+    if (name.endsWith("-\$")) {
+      name = name.substring(0, name.length - 2);
+    }
+
+    // Shorten words to common acronyms
+    name = " $name ";
+    name = name
+        .replaceAll(" CO.LTD. ", " CO. LTD. ")
+        .replaceAll(" ENGG.LTD. ", " ENGG. LTD. ")
+        .replaceAll(" ENGINEERING ", " ENGG. ")
+        .replaceAll(" LIMITED ", " LTD. ")
+        .replaceAll(" LTD ", " LTD. ")
+        .replaceAll(" COMPANY ", " CO. ")
+        .replaceAll(" ENTERPRISES ", " ENT. ")
+        .replaceAll(" ENT ", " ENT. ")
+        .replaceAll(" CORPORATION ", " CORP. ")
+        .replaceAll(" CORP ", " CORP. ");
+
+    return name.trim();
+  }
+
+  static void editScripName(int stockID, String name) async {
+    var tuples = await getScripsFromName(name);
+    if (tuples.length == 0) {
+      await Db().updateConditionally(
+          Db.tblScrips, {Db.colName: name}, "${Db.colRowID} = ?", [stockID]);
+    } else if (tuples.first[Db.colRowID] != stockID) {
+      throw DataException("Scrip name already present!");
+    }
+  }
+
+  static Future<void> deleteScrip(int stockID) async {
+    var portfolioLogs =
+        await Db().getQuery(Db.tblPortfolio, "${Db.colStockID} = ?", [stockID]);
+    if (portfolioLogs.isNotEmpty)
+      throw DataException(
+          "Can't delete security as it exists in your Portfolio");
+
+    var tradeLogs =
+        await Db().getQuery(Db.tblTradeLog, "${Db.colStockID} = ?", [stockID]);
+    if (tradeLogs.isNotEmpty)
+      throw DataException(
+          "Can't delete security as it exists in your TradeLogs");
+
+    var trackedTuple =
+        await Db().getQuery(Db.tblTracked, "${Db.colStockID} = ?", [stockID]);
+    if (trackedTuple.isNotEmpty)
+      throw DataException(
+          "Can't delete security as it exists in your Tracked list");
+
+    await Db().deleteQuery(Db.tblScrips, "${Db.colRowID} = ?", [stockID]);
   }
 }

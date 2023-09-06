@@ -405,7 +405,7 @@ class _InvalidFileLogTile extends State<FileLogTile>
                                 ),
                               )),
                           enabled:
-                              widget._log.date == null && !widget.isLogValid,
+                              widget._log.qty == null && !widget.isLogValid,
                           cursorColor: Theme.of(context).colorScheme.secondary,
                           style: Theme.of(context).textTheme.bodyLarge,
                           keyboardType: TextInputType.number,
@@ -452,7 +452,7 @@ class _InvalidFileLogTile extends State<FileLogTile>
                                 ),
                               )),
                           enabled:
-                              widget._log.date == null && !widget.isLogValid,
+                              widget._log.rate == null && !widget.isLogValid,
                           cursorColor: Theme.of(context).colorScheme.secondary,
                           style: Theme.of(context).textTheme.bodyLarge,
                           keyboardType:

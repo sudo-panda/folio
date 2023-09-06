@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:folio/views/settings/data/import_file/get_missing_codes.dart';
 import 'package:folio/views/settings/data/import_file/show_valid_logs.dart';
 
 import '../../../../helpers/database_actions.dart';
 import '../../../../models/trade/parsed_file_logs.dart';
-import 'correct_invalid_logs.dart';
 
 class ImportFileRoute extends StatefulWidget {
   @override
@@ -227,8 +227,9 @@ class _ImportFileRouteState extends State<ImportFileRoute> {
           updateProgress();
           return;
       }
+
+      logs = await DatabaseActions.resolveInvalidLogs(logs, onUpdate: updateProgress);
     } catch (e) {
-      // FIXME: Send error to user
       updateProgress(message: e.toString(), current: 0, total: 1);
       setState(() {
         _isButtonEnabled = true;
@@ -240,7 +241,7 @@ class _ImportFileRouteState extends State<ImportFileRoute> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) {
-          return CorrectInvalidLogs(logs);
+          return GetMissingCodes(logs);
         }),
       );
     } else {

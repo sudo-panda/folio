@@ -1,5 +1,6 @@
 class FileLog {
   DateTime? date;
+  int? stockID;
   String? name;
   String? bseCode;
   String? nseCode;
