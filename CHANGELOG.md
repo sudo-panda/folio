@@ -1,3 +1,3 @@
-## Add support for new SBI format
+## Add scrips table support
 
-Also update flutter packages
+Also update to newest version of flutter
