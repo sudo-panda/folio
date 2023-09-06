@@ -15,8 +15,10 @@ class StockRepository {
 
   static Future<String?> getName(String code, String exchange) async {
     String? name = await QueryAPI.getName(exchange: exchange, code: code);
-    
-    DatabaseActions.setScripName(exchange, name, code);
+
+    if (name != null)
+      DatabaseActions.setScripName(exchange, name, code);
+
     return name?.toUpperCase();
   }
 

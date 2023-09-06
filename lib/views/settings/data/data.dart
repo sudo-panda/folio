@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:folio/views/settings/data/scrips_list.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -93,11 +94,14 @@ class _ImportAreaState extends State<ImportArea> {
                           Icons.folder_open_outlined,
                           color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                  onTap: !_isButtonEnabled ? null : () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return ImportFileRoute();
-                    }));
-                  },
+                  onTap: !_isButtonEnabled
+                      ? null
+                      : () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return ImportFileRoute();
+                          }));
+                        },
                 ),
                 ListTile(
                   title: Text("Track a stock"),
@@ -148,6 +152,29 @@ class _ImportAreaState extends State<ImportArea> {
                 ),
                 Divider(),
                 Text(
+                  "Securities",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                ListTile(
+                  title: Text("Show Securities"),
+                  trailing: Icon(
+                    Icons.view_list_outlined,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onTap: !_isButtonEnabled
+                      ? null
+                      : () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                          return ShowSecuritiesRoute();
+                        }));
+                  },
+                ),
+                Divider(),
+                Text(
                   "Export",
                   style: Theme.of(context)
                       .textTheme
@@ -185,56 +212,7 @@ class _ImportAreaState extends State<ImportArea> {
                   ),
                   title: Text("Delete Database"),
                   onTap: () async {
-                    String? result = await showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: Center(child: Text("WARNING")),
-                        content: Text(
-                          "This will delete the database. Proceed only if you know what you are doing.",
-                          style: Theme.of(context).textTheme.bodyLarge,
-                          textAlign: TextAlign.justify,
-                        ),
-                        actions: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                minimumSize: Size(88, 36),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(5)),
-                                )),
-                            onPressed: () {
-                              Navigator.pop(context, "Delete");
-                            },
-                            child: Text("Delete"),
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          ElevatedButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor:
-                                  Theme.of(context).colorScheme.background,
-                              minimumSize: Size(88, 36),
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(5)),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context, "Cancel");
-                            },
-                            child: Text("Cancel"),
-                          ),
-                        ],
-                        actionsPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      ),
-                    );
-                    if (result == "Delete") {
-                      DatabaseActions.deleteDbThenInit();
-                    }
+                    await deleteDatabase(context);
                   },
                 )
               ],
@@ -292,7 +270,58 @@ class _ImportAreaState extends State<ImportArea> {
     );
   }
 
-
+  Future<void> deleteDatabase(BuildContext context) async {
+    String? result = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Center(child: Text("WARNING")),
+        content: Text(
+          "This will delete the database. Proceed only if you know what you are doing.",
+          style: Theme.of(context).textTheme.bodyLarge,
+          textAlign: TextAlign.justify,
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+                minimumSize: Size(88, 36),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(5)),
+                )),
+            onPressed: () {
+              Navigator.pop(context, "Delete");
+            },
+            child: Text("Delete"),
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          ElevatedButton(
+            style: TextButton.styleFrom(
+              foregroundColor:
+                  Theme.of(context).colorScheme.background,
+              minimumSize: Size(88, 36),
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              shape: const RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.all(Radius.circular(5)),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context, "Cancel");
+            },
+            child: Text("Cancel"),
+          ),
+        ],
+        actionsPadding:
+            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      ),
+    );
+    if (result == "Delete") {
+      DatabaseActions.deleteDbThenInit();
+    }
+  }
 
   void exportLogs() async {
     setState(() {

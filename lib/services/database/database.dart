@@ -20,6 +20,8 @@ class Db {
   static String colCode = 'code';
   static String colBSECode = 'bse_code';
   static String colNSECode = 'nse_code';
+  static String colOldBSECodes = 'old_bse_codes';
+  static String colOldNSECodes = 'old_nse_codes';
   static String colExch = 'exchange';
   static String colName = 'name';
   static String colKey = 'key';
@@ -80,7 +82,9 @@ class Db {
         '$colRowID INTEGER PRIMARY KEY, '
         '$colBSECode TEXT UNIQUE, '
         '$colNSECode TEXT UNIQUE, '
-        '$colName TEXT'
+        '$colOldBSECodes TEXT, '
+        '$colOldNSECodes TEXT, '
+        '$colName TEXT UNIQUE'
         ')');
   }
 
@@ -103,7 +107,7 @@ class Db {
     return count;
   }
 
-  Future<List<Map>> getAllTuples(String table) async {
+  Future<List<Map<String, dynamic>>> getAllTuples(String table) async {
     var dbClient = await db;
     List<Map<String, dynamic>> result = await dbClient.query(table);
 
