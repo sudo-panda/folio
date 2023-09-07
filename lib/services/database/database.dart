@@ -158,6 +158,12 @@ class Db {
     return res > 0 ? true : false;
   }
 
+  Future<bool> deleteAllRows(String table) async {
+    var dbClient = await db;
+    int res = await dbClient.delete(table);
+    return res > 0 ? true : false;
+  }
+
   Future<bool> insert(String table, Map<String, dynamic> tuple) async {
     var dbClient = await db;
     int res = await dbClient.insert(table, tuple);

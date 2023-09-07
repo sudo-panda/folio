@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 import 'package:folio/views/settings/data/add_trade_log.dart';
 import 'package:folio/views/settings/data/track_stock_dialog.dart';
 import 'package:folio/helpers/database_actions.dart';
@@ -131,21 +130,6 @@ class _ImportAreaState extends State<ImportArea> {
                             MaterialPageRoute(builder: (context) {
                               return AddTradeLogRoute();
                             }),
-                          );
-                        }
-                      : null,
-                ),
-                ListTile(
-                  title: Text("Add to portfolio"),
-                  trailing: Icon(
-                    Icons.link_outlined,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  onTap: _isButtonEnabled
-                      ? () async {
-                          await showDialog(
-                            context: context,
-                            builder: (context) => AddPortfolioDialog(),
                           );
                         }
                       : null,

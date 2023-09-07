@@ -108,7 +108,7 @@ class DatabaseActions {
         Db.colBought: bought ? 1 : 0,
       },
     );
-    
+
     if (!isTradeInserted) {
       throw DataException("Couldn't add trade to logs!");
     }
@@ -126,7 +126,7 @@ class DatabaseActions {
         Db.colPinned: 0,
       });
     }
-    
+
     return true;
   }
 
@@ -160,9 +160,10 @@ class DatabaseActions {
           await Db().updateConditionally(
             Db.tblPortfolio,
             {
-              Db.colGrossQty: qty,
-              Db.colMSR: msr,
-              Db.colESR: esr,
+              Db.colGrossQty: null,
+              Db.colAvgRate: null,
+              Db.colMSR: null,
+              Db.colESR: null,
             },
             '${Db.colStockID} = ?',
             [stockID],
@@ -172,17 +173,23 @@ class DatabaseActions {
             '${Db.colRowID} = ?',
             [stockID],
           );
-          await Db().deleteQuery(
-            Db.tblTracked,
-            '${Db.colCode} = ? and ${Db.colExch} = ?',
-            [scrips.first[Db.colBSECode], "BSE"],
-          );
 
-          await Db().deleteQuery(
-            Db.tblTracked,
-            '${Db.colCode} = ? and ${Db.colExch} = ?',
-            [scrips.first[Db.colNSECode], "NSE"],
-          );
+          if (scrips.first[Db.colBSECode] != null) {
+            await Db().deleteQuery(
+              Db.tblTracked,
+              '${Db.colCode} = ? and ${Db.colExch} = ?',
+              [scrips.first[Db.colBSECode], "BSE"],
+            );
+          }
+
+          if (scrips.first[Db.colNSECode] != null) {
+            await Db().deleteQuery(
+              Db.tblTracked,
+              '${Db.colCode} = ? and ${Db.colExch} = ?',
+              [scrips.first[Db.colNSECode], "NSE"],
+            );
+          }
+
           return false;
         }
 
@@ -264,6 +271,7 @@ class DatabaseActions {
       Db.tblPortfolio,
       {
         Db.colGrossQty: qty,
+        Db.colAvgRate: avgBuyRate,
         Db.colMSR: msr,
         Db.colESR: esr,
       },
@@ -272,6 +280,20 @@ class DatabaseActions {
     );
 
     return res;
+  }
+
+  static Future<void> updateAllPortfolioFigures() async {
+    await Db().deleteAllRows(Db.tblPortfolio);
+
+    List<Map<String, dynamic>> stockIDTuples = await Db().getRawQuery(""
+        "SELECT DISTINCT "
+        "${Db.colStockID} "
+        "FROM ${Db.tblTradeLog}");
+
+    for (var stockIDRow in stockIDTuples.reversed) {
+      int stockID = stockIDRow[Db.colStockID];
+      await updatePortfolioFigures(stockID);
+    }
   }
 
   static Future<List<TradeLog>> getBuyTrades(int stockID) async {

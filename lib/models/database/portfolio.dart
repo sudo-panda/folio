@@ -6,6 +6,7 @@ class Portfolio {
   late String? bseCode;
   late String? nseCode;
   late int? qty;
+  late double? rate;
   late double? msr;
   late double? esr;
 
@@ -15,6 +16,7 @@ class Portfolio {
     bseCode = tuple[Db.colBSECode];
     nseCode = tuple[Db.colNSECode];
     qty = tuple[Db.colGrossQty];
+    rate = tuple[Db.colAvgRate];
     msr = tuple[Db.colMSR];
     esr = tuple[Db.colESR];
   }
@@ -25,6 +27,7 @@ class Portfolio {
       Db.colBSECode: bseCode,
       Db.colNSECode: nseCode,
       Db.colGrossQty: qty,
+      Db.colAvgRate: rate,
       Db.colMSR: msr,
       Db.colESR: esr,
     };

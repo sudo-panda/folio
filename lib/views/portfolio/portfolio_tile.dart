@@ -79,7 +79,18 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .titleLarge
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.normal),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    _portfolio.rate?.toStringAsFixed(2) ?? "—",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
                         ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
@@ -90,7 +101,7 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .titleLarge
+                        .titleMedium
                         ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
@@ -101,7 +112,7 @@ class PortfolioTile extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .titleLarge
+                        .titleMedium
                         ?.copyWith(fontWeight: FontWeight.normal),
                   ),
                 ),
@@ -115,6 +126,17 @@ class PortfolioTile extends StatelessWidget {
                   flex: 2,
                   child: Text(
                     "QTY",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    "RATE",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme

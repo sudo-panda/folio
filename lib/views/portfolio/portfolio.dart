@@ -51,6 +51,19 @@ class _PortfolioViewState extends State<PortfolioView> {
                         "Portfolio",
                         style: Theme.of(context).textTheme.displayLarge,
                       ),
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.secondary,
+                          foregroundColor: Theme.of(context).colorScheme.background,
+                          shape: const CircleBorder(),
+                        ),
+                        child: Icon(Icons.sync),
+                        onPressed: () {
+                          // TODO: Call updateAllPortfolioFigures after a warning
+                          DatabaseActions.updateAllPortfolioFigures();
+                        },
+                      )
                     ],
                   ),
                 ),
