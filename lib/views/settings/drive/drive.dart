@@ -14,6 +14,7 @@ class DriveRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.background,
         title: Text("Drive"),
         centerTitle: true,
         elevation: 0,
@@ -24,6 +25,7 @@ class DriveRoute extends StatelessWidget {
           ),
         ],
       ),
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromViewPadding(ViewPadding.zero, 1),
@@ -280,13 +282,24 @@ class _DriveAreaState extends State<DriveArea> {
       final authenticateClient = GoogleAuthClient(authHeaders);
       final driveApi = drive.DriveApi(authenticateClient);
 
-      var file = await driveApi.files
-          .get(id, downloadOptions: drive.DownloadOptions.fullMedia);
+      var response = await driveApi.files
+          .get(id, acknowledgeAbuse: true, downloadOptions: drive.DownloadOptions.fullMedia);
+
+      drive.Media media = response as drive.Media;
 
       final path = await DatabaseActions.getDbPath();
-      // TODO: Check if this works
       final saveFile = File(path);
-      await saveFile.writeAsString(file.toString(), flush: true);
+      List<int> dataStore = [];
+      media.stream.listen((data) {
+        dataStore.insertAll(dataStore.length, data);
+      }, onDone: () async {
+        log("Download Done");
+        saveFile.writeAsBytes(dataStore, flush: true).then((res) async {
+          log("Written to File");
+        });
+      }, onError: (e) {
+        log("drive.showRestoreDialog() => \n " + e.toString());
+      });
     }
 
     setState(() {
