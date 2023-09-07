@@ -1,3 +1,6 @@
 ## Add scrips table support
 
-Also update to newest version of flutter
+- Improve portfolio view
+- Update to newest version of flutter
+- Minor fixes and improvements
+
