@@ -45,9 +45,9 @@ class AppTheme {
   static const Color _lightBackgroundColor = Colors.white;
   static const Color _lightOnBackgroundColor = Color(0XFFCCCCCC);
   static const Color _lightPrimaryVariantColor = Color(0XFFE0E0E0);
-  static const Color _lightSecondaryColor = Colors.lightGreen;
+  static const Color _lightSecondaryColor = Colors.purple;
   static const Color _lightOnPrimaryColor = Color(0XFF6a7591);
-  static const Color _lightPositiveColor = Colors.greenAccent;
+  static const Color _lightPositiveColor =  Colors.green;
   static const Color _lightNegativeColor = Colors.redAccent;
 
   static const Color _darkPrimaryColor = Color(0XFFF0CAA3);
@@ -55,7 +55,7 @@ class AppTheme {
   static const Color _darkBackgroundColor = Color(0XFF0F0F0F);
   static const Color _darkOnBackgroundColor = Color(0XFFDDDDDD);
   static const Color _darkPrimaryVariantColor = Color(0XFF1F1F1F);
-  static const Color _darkSecondaryColor = Colors.lightGreen;
+  static const Color _darkSecondaryColor = Colors.purple;
   static const Color _darkOnPrimaryColor = Colors.white;
   static const Color _darkPositiveColor = Colors.green;
   static const Color _darkNegativeColor = Colors.red;
@@ -81,7 +81,7 @@ class AppTheme {
       colorScheme: ColorScheme.light(
         primary: _lightPrimaryColor,
         background: _lightBackgroundColor,
-        secondary: _iconColor,
+        secondary: _lightSecondaryColor,
         onPrimary: _lightOnPrimaryColor,
         onBackground: _lightOnBackgroundColor,
       ),
@@ -115,7 +115,7 @@ class AppTheme {
       ),
       colorScheme: ColorScheme.dark(
         primary: _darkPrimaryColor,
-        secondary: _iconColor,
+        secondary: _darkSecondaryColor,
         background: _darkBackgroundColor,
         onPrimary: _darkOnPrimaryColor,
         onBackground: _darkOnBackgroundColor,

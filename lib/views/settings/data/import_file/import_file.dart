@@ -95,7 +95,7 @@ class _ImportFileRouteState extends State<ImportFileRoute> {
                 ),
               ),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: _isButtonEnabled && pickedFile?.path != null
                   ? importLogs
                   : null,

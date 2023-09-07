@@ -19,7 +19,7 @@ class _ImportScripsFileRouteState extends State<ImportScripsFileRoute> {
   String? _message;
   int? _current;
   int? _total;
-  List<bool> _isExchangeSelected = [true, false];
+  List<bool> _isExchangeSelected = [false, false];
   List<String> _exchanges = ["BSE", "NSE"];
 
   void updateProgress({String? message, int? current, int? total}) {
@@ -63,75 +63,9 @@ class _ImportScripsFileRouteState extends State<ImportScripsFileRoute> {
                 margin: EdgeInsets.all(10),
                 elevation: 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: ToggleButtons(
-                          children: <Widget>[
-                            ConstrainedBox(
-                              constraints: BoxConstraints(minWidth: 100),
-                              child: Text(
-                                "BSE",
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      color: _isExchangeSelected[0]
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .background
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary,
-                                    ),
-                              ),
-                            ),
-                            ConstrainedBox(
-                              constraints: BoxConstraints(minWidth: 100),
-                              child: Text(
-                                "NSE",
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      color: _isExchangeSelected[1]
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .background
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary,
-                                    ),
-                              ),
-                            ),
-                          ],
-                          onPressed: (int index) {
-                            setState(() {
-                              for (int buttonIndex = 0;
-                                  buttonIndex < _isExchangeSelected.length;
-                                  buttonIndex++) {
-                                if (buttonIndex == index) {
-                                  _isExchangeSelected[buttonIndex] = true;
-                                } else {
-                                  _isExchangeSelected[buttonIndex] = false;
-                                }
-                              }
-                            });
-                          },
-                          isSelected: _isExchangeSelected,
-                          selectedColor: _isExchangeSelected[0]
-                              ? Colors.lightBlue
-                              : Colors.orange,
-                          fillColor: _isExchangeSelected[0]
-                              ? Colors.lightBlue
-                              : Colors.orange,
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                      ),
                       Container(
                         decoration: ShapeDecoration(
                           shape: RoundedRectangleBorder(
@@ -171,19 +105,82 @@ class _ImportScripsFileRouteState extends State<ImportScripsFileRoute> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: ElevatedButton(
-                          onPressed:
-                              _isButtonEnabled && pickedFile?.path != null
-                                  ? importScrips
-                                  : null,
-                          child: Text(
-                            "Import",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(color: Colors.white),
-                          ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: ToggleButtons(
+                          children: <Widget>[
+                            ConstrainedBox(
+                              constraints: BoxConstraints(minWidth: 100),
+                              child: Text(
+                                "BSE",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                  color: _isExchangeSelected[0]
+                                      ? Theme.of(context)
+                                      .colorScheme
+                                      .background
+                                      : Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary,
+                                ),
+                              ),
+                            ),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(minWidth: 100),
+                              child: Text(
+                                "NSE",
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                  color: _isExchangeSelected[1]
+                                      ? Theme.of(context)
+                                      .colorScheme
+                                      .background
+                                      : Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                          onPressed: (int index) {
+                            setState(() {
+                              for (int buttonIndex = 0;
+                              buttonIndex < _isExchangeSelected.length;
+                              buttonIndex++) {
+                                if (buttonIndex == index) {
+                                  _isExchangeSelected[buttonIndex] = true;
+                                } else {
+                                  _isExchangeSelected[buttonIndex] = false;
+                                }
+                              }
+                            });
+                          },
+                          isSelected: _isExchangeSelected,
+                          selectedColor: _isExchangeSelected[0]
+                              ? Colors.lightBlue
+                              : Colors.orange,
+                          fillColor: _isExchangeSelected[0]
+                              ? Colors.lightBlue
+                              : Colors.orange,
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed:
+                            _isButtonEnabled && pickedFile?.path != null && getSelectedExchange() != ""
+                                ? importScrips
+                                : null,
+                        child: Text(
+                          "Import",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: Colors.white),
                         ),
                       ),
                     ],
@@ -260,7 +257,7 @@ class _ImportScripsFileRouteState extends State<ImportScripsFileRoute> {
   }
 
   void importScrips() async {
-    if (pickedFile == null || pickedFile?.path == null) {
+    if (pickedFile == null || pickedFile?.path == null || getSelectedExchange() == "") {
       return;
     }
 

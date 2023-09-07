@@ -11,6 +11,7 @@ class Portfolio {
 
   Portfolio.fromDbTuple(Map<String, dynamic> tuple) {
     stockID = tuple[Db.colStockID];
+    name = tuple[Db.colName];
     bseCode = tuple[Db.colBSECode];
     nseCode = tuple[Db.colNSECode];
     qty = tuple[Db.colGrossQty];

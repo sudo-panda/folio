@@ -75,7 +75,7 @@ class DatabaseActions {
         : TradeLog.fromDbTuple(tradeLogs.first).date;
   }
 
-  static Future<bool> setTradeLog(
+  static Future<bool> addTradeLog(
     String code,
     String exchange,
     String date,
@@ -87,14 +87,16 @@ class DatabaseActions {
     var scrips = await Db().getQuery(Db.tblScrips, "$codeCol = ?", [code]);
 
     if (scrips.length > 1) {
-      return false;
-    } else if (scrips.length == 0) {
-      bool res = await Db().insert(Db.tblScrips, {codeCol: code});
-      if (!res) return res;
-      scrips = await Db().getQuery(Db.tblScrips, "$codeCol = ?", [code]);
+      throw DataException(
+          "Multiple stocks with same code present in securities list. "
+          "Please delete duplicates!");
     }
 
-    if (!(await Db().insert(
+    if (scrips.length == 0) {
+      throw DataException("Stock not present in securities list!");
+    }
+
+    bool isTradeInserted = await Db().insert(
       Db.tblTradeLog,
       {
         Db.colStockID: scrips.first[Db.colRowID],
@@ -105,13 +107,13 @@ class DatabaseActions {
         Db.colDate: date,
         Db.colBought: bought ? 1 : 0,
       },
-    ))) {
-      return false;
+    );
+    
+    if (!isTradeInserted) {
+      throw DataException("Couldn't add trade to logs!");
     }
 
-    if (!(await updatePortfolioFigures(scrips.first[Db.colRowID]))) {
-      return false;
-    }
+    await updatePortfolioFigures(scrips.first[Db.colRowID]);
 
     var trackedStocks = await Db().getQuery(Db.tblTracked,
         '${Db.colCode} = ? and ${Db.colExch} = ?', [code, exchange]);
@@ -123,9 +125,9 @@ class DatabaseActions {
         Db.colExch: exchange,
         Db.colPinned: 0,
       });
-    } else {
-      return true;
     }
+    
+    return true;
   }
 
   static Future<bool> updatePortfolioFigures(int stockID) async {

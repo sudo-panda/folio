@@ -4,7 +4,6 @@ import 'package:folio/views/common/bottom_navbar.dart';
 import 'package:folio/views/common/drawer.dart';
 import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/views/portfolio/portfolio_tile.dart';
-import 'package:folio/views/settings/data/add_portfolio_dialog.dart';
 
 class PortfolioView extends StatefulWidget {
   @override
@@ -51,20 +50,6 @@ class _PortfolioViewState extends State<PortfolioView> {
                       Text(
                         "Portfolio",
                         style: Theme.of(context).textTheme.displayLarge,
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.background,
-                          backgroundColor: Theme.of(context).colorScheme.secondary,
-                          shape: const CircleBorder(),
-                        ),
-                        child: Icon(Icons.link),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AddPortfolioDialog(),
-                          );
-                        },
                       ),
                     ],
                   ),

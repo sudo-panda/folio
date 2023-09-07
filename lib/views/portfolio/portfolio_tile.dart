@@ -1,5 +1,4 @@
 import 'package:folio/models/database/portfolio.dart';
-import 'package:folio/views/tracked/details/details.dart';
 
 import 'package:flutter/material.dart';
 
@@ -26,6 +25,18 @@ class PortfolioTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Center(
+              child: _portfolio.name == null
+                  ? null
+                  : Text(
+                      _portfolio.name!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Wrap(
@@ -35,36 +46,9 @@ class PortfolioTile extends StatelessWidget {
                   _portfolio.bseCode != null
                       ? Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "BSE - " + _portfolio.bseCode!,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              GestureDetector(
-                                child: Icon(
-                                  Icons.edit,
-                                  size: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          !.fontSize! +
-                                      3,
-                                ),
-                                onTap: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (context) => EditCodeDialog(
-                                        _portfolio.bseCode!,
-                                        "BSE",
-                                        updateBSECode),
-                                  );
-                                },
-                              ),
-                            ],
+                          child: Text(
+                            "BSE: " + _portfolio.bseCode!,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         )
                       : Container(
@@ -73,36 +57,9 @@ class PortfolioTile extends StatelessWidget {
                   _portfolio.nseCode != null
                       ? Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "NSE - " + _portfolio.nseCode!,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                              SizedBox(
-                                width: 5,
-                              ),
-                              GestureDetector(
-                                child: Icon(
-                                  Icons.edit,
-                                  size: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          !.fontSize! +
-                                      3,
-                                ),
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => EditCodeDialog(
-                                        _portfolio.nseCode!,
-                                        "NSE",
-                                        updateNSECode),
-                                  );
-                                },
-                              )
-                            ],
+                          child: Text(
+                            "NSE: " + _portfolio.nseCode!,
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         )
                       : Container(
@@ -140,7 +97,7 @@ class PortfolioTile extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    _portfolio?.esr?.toStringAsFixed(2) ?? "—",
+                    _portfolio.esr?.toStringAsFixed(2) ?? "—",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme

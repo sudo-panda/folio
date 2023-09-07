@@ -46,51 +46,51 @@ class _AddTradeLogRouteState extends State<AddTradeLogRoute> {
         backgroundColor: Theme.of(context).colorScheme.background,
         actions: [
           IconButton(
-            icon: Icon(Icons.check),
-            onPressed: () async {
-              if (_formKey.currentState != null &&
-                  _formKey.currentState!.validate()) {
-                var res = await DatabaseActions.setTradeLog(
-                  _codeCtl.text.trim(),
-                  _selectedExch,
-                  _dateCtl.text.trim(),
-                  _isSelected[0],
-                  int.parse(_qtyCtl.text.trim()),
-                  double.parse(
-                    _rateCtl.text.trim(),
-                  ),
-                );
-                if (res) {
-                  Navigator.pop(context);
-                } else {
-                  await showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text("Couldn't add!"),
-                        actions: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.black87,
-                                minimumSize: Size(88, 36),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(2)),
-                                )),
-                            child: Text("OK"),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          )
-                        ],
-                      );
-                    },
-                  );
+              icon: Icon(Icons.check),
+              onPressed: () async {
+                if (_formKey.currentState != null &&
+                    _formKey.currentState!.validate()) {
+                  try {
+                    await DatabaseActions.addTradeLog(
+                      _codeCtl.text.trim(),
+                      _selectedExch,
+                      _dateCtl.text.trim(),
+                      _isSelected[0],
+                      int.parse(_qtyCtl.text.trim()),
+                      double.parse(
+                        _rateCtl.text.trim(),
+                      ),
+                    );
+                    Navigator.pop(context);
+                  } catch (e) {
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text("Failed"),
+                          content: Text(e.toString()),
+                          actions: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  foregroundColor: Colors.black87,
+                                  minimumSize: Size(88, 36),
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(2)),
+                                  )),
+                              child: Text("OK"),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            )
+                          ],
+                        );
+                      },
+                    );
+                  }
                 }
-              }
-            },
-          )
+              })
         ],
       ),
       body: Padding(

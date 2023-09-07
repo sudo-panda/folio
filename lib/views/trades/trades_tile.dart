@@ -40,7 +40,7 @@ class LogTile extends StatelessWidget {
                   ? Icon(Icons.circle_outlined)
                   : _tradeLog.bought
                   ? Icon(Icons.add_circle, color: myColors.positiveColor,)
-                  : Icon(Icons.add_circle, color: myColors.negativeColor,),
+                  : Icon(Icons.remove_circle, color: myColors.negativeColor,),
             ),
             Expanded(
               child: Padding(

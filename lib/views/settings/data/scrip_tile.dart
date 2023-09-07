@@ -38,6 +38,7 @@ class _ScripTileState extends State<ScripTile> {
                 borderRadius: BorderRadius.circular(10),
               ),
               margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              color: Theme.of(context).cardColor,
               elevation: 4,
               child: InkWell(
                 onTap: () {
