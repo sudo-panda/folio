@@ -345,8 +345,7 @@ class DatabaseActions {
     var res = await Db().getQuery(
         Db.tblScrips, "${Db.colName} LIKE ?", ["${getNormalizedName(name)}%"]);
     if (res.length == 0) {
-      return await Db().getQuery(
-          Db.tblScrips, "${Db.colAKA} LIKE ?",
+      return await Db().getQuery(Db.tblScrips, "${Db.colAKA} LIKE ?",
           ["%${getNormalizedName(name)}%"]);
     }
     return res;
@@ -366,8 +365,23 @@ class DatabaseActions {
     return tuples.length != 0;
   }
 
-  static Future<List<Scrip>?> getAllScrips() async {
+  static Future<List<Scrip>> getAllScrips() async {
     var scripsTuple = await Db().getOrdered(Db.tblScrips, "${Db.colName} ASC");
+    List<Scrip> scripsList = [];
+    scripsTuple.forEach((row) => scripsList.add(Scrip.fromDbTuple(row)));
+    return scripsList;
+  }
+
+  static Future<List<Scrip>> getScripsLike(String str) async {
+    var scripsTuple = await Db().getQuery(
+        Db.tblScrips,
+        "${Db.colName} LIKE ? OR "
+        "${Db.colBSECode} LIKE ? OR "
+        "${Db.colNSECode} LIKE ? OR "
+        "${Db.colOldBSECodes} LIKE ? OR "
+        "${Db.colOldNSECodes} LIKE ? OR "
+        "${Db.colAKA} LIKE ?",
+        ["%$str%", "$str%", "%$str%", "%$str%", "%$str%", "%$str%"]);
     List<Scrip> scripsList = [];
     scripsTuple.forEach((row) => scripsList.add(Scrip.fromDbTuple(row)));
     return scripsList;
@@ -955,7 +969,17 @@ class DatabaseActions {
 
           String code = row[0].toString();
           String name = getNormalizedName(row[1].toString())!;
-          scripsMap[name] = ParsedScrip(name, code);
+
+          // HACK: To deal with DVR scrips
+          if (code.endsWith("DVR") && !name.endsWith("DVR"))
+            name = name + " - DVR";
+
+          if (scripsMap[name] == null) {
+            scripsMap[name] = ParsedScrip(name, code);
+          } else {
+              if (!scripsMap[name]!.oldCodes.contains(code))
+                scripsMap[name]?.oldCodes.add(code);
+          }
         }
 
         break;
@@ -1180,16 +1204,15 @@ class DatabaseActions {
       String exchange, String name, String code) async {
     String codeCol = getCodeCol(exchange);
     var scripsTuple = await Db().getQuery(Db.tblScrips, '$codeCol = ?', [code]);
-    if (scripsTuple.length == 0 || scripsTuple.length > 1)
-      return false;
+    if (scripsTuple.length == 0 || scripsTuple.length > 1) return false;
 
     Scrip scrip = Scrip.fromDbTuple(scripsTuple.first);
     if (!scrip.aka.contains(name)) {
       scrip.aka.add(name);
     }
 
-    return await Db().updateConditionally(Db.tblScrips,
-        scrip.toDbTuple(), '$codeCol = ?', [code]);
+    return await Db().updateConditionally(
+        Db.tblScrips, scrip.toDbTuple(), '$codeCol = ?', [code]);
   }
 
   static Future<bool> updatePinned(
@@ -1341,7 +1364,8 @@ class DatabaseActions {
         .replaceAll(" ENTERPRISES ", " ENT. ")
         .replaceAll(" ENT ", " ENT. ")
         .replaceAll(" CORPORATION ", " CORP. ")
-        .replaceAll(" CORP ", " CORP. ");
+        .replaceAll(" CORP ", " CORP. ")
+        .replaceAll("_DVR ", " - DVR ");
 
     return name.trim();
   }

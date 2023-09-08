@@ -177,7 +177,9 @@ class _ScripTileState extends State<ScripTile> {
     );
   }
 
-  editScrip() {}
+  editScrip() {
+    widget._refreshParent();
+  }
 
   deleteScrip() async {
     String? result = await showDialog(

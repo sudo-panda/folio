@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/models/database/scrip.dart';
-import 'package:folio/views/settings/data/import_scrips_list/select_scrips_file.dart';
 import 'package:folio/views/settings/data/scrip_tile.dart';
-import 'package:folio/views/settings/data/search_scrips.dart';
 
-class ShowSecuritiesRoute extends StatefulWidget {
+class SearchSecuritiesRoute extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _ShowSecuritiesRouteState();
+  State<StatefulWidget> createState() => _SearchSecuritiesRouteState();
 }
 
-class _ShowSecuritiesRouteState extends State<ShowSecuritiesRoute> {
-  late Future<List<Scrip>?> _scripsListFuture;
+class _SearchSecuritiesRouteState extends State<SearchSecuritiesRoute> {
+  final TextEditingController _searchController = TextEditingController();
+  late String searchString;
 
   @override
   void initState() {
     super.initState();
-    _scripsListFuture = DatabaseActions.getScripsLike("T");
+    searchString = "";
+  }
+
+  Future<List<Scrip>> search(String str) async {
+    if (str == "")
+      return [];
+    else
+      return await DatabaseActions.getScripsLike(str);
   }
 
   @override
@@ -25,44 +31,23 @@ class _ShowSecuritiesRouteState extends State<ShowSecuritiesRoute> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.background,
-        title: Text("Securities"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () async {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => SearchSecuritiesRoute()),
-              );
-            },
+        title: TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            hintText: 'Search...',
+            border: UnderlineInputBorder(),
           ),
-          IconButton(
-            icon: Icon(Icons.plus_one),
-            onPressed: null
-            // () async {
-            //   Navigator.pushReplacement(
-            //       context,
-            //       MaterialPageRoute(
-            //           builder: (context) => ImportScrip),);
-            // }
-            ,
-          ),
-          IconButton(
-            icon: Icon(Icons.note_add_outlined),
-            onPressed: () async {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ImportScripsFileRoute()),
-              );
-            },
-          )
-        ],
+          onChanged: (String value) {
+            setState(() {
+              searchString = value;
+            });
+          },
+        ),
       ),
       body: CustomScrollView(
         slivers: [
           FutureBuilder(
-            future: _scripsListFuture,
+            future: search(searchString),
             builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return SliverFillRemaining(
@@ -88,7 +73,7 @@ class _ShowSecuritiesRouteState extends State<ShowSecuritiesRoute> {
                 return SliverFillRemaining(
                   child: Center(
                     child: Text(
-                      "No Securities Found",
+                      searchString == "" ? "" : "No Securities Found",
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                   ),
@@ -112,7 +97,7 @@ class _ShowSecuritiesRouteState extends State<ShowSecuritiesRoute> {
 
   void refreshList() {
     setState(() {
-      _scripsListFuture = DatabaseActions.getAllScrips();
+      searchString = searchString;
     });
   }
 }
