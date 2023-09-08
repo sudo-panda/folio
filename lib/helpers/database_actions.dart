@@ -344,6 +344,11 @@ class DatabaseActions {
       String name) async {
     var res = await Db().getQuery(
         Db.tblScrips, "${Db.colName} LIKE ?", ["${getNormalizedName(name)}%"]);
+    if (res.length == 0) {
+      return await Db().getQuery(
+          Db.tblScrips, "${Db.colAKA} LIKE ?",
+          ["%${getNormalizedName(name)}%"]);
+    }
     return res;
   }
 
@@ -1169,6 +1174,22 @@ class DatabaseActions {
 
     return await Db().updateConditionally(Db.tblScrips,
         {Db.colName: getNormalizedName(name)}, '$codeCol = ?', [code]);
+  }
+
+  static Future<bool> addToScripAKA(
+      String exchange, String name, String code) async {
+    String codeCol = getCodeCol(exchange);
+    var scripsTuple = await Db().getQuery(Db.tblScrips, '$codeCol = ?', [code]);
+    if (scripsTuple.length == 0 || scripsTuple.length > 1)
+      return false;
+
+    Scrip scrip = Scrip.fromDbTuple(scripsTuple.first);
+    if (!scrip.aka.contains(name)) {
+      scrip.aka.add(name);
+    }
+
+    return await Db().updateConditionally(Db.tblScrips,
+        scrip.toDbTuple(), '$codeCol = ?', [code]);
   }
 
   static Future<bool> updatePinned(

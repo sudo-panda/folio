@@ -8,6 +8,7 @@ class Scrip {
   String? nseCode;
   List<String> oldBSECodes = [];
   List<String> oldNSECodes = [];
+  List<String> aka = [];
 
   Scrip(this.name);
 
@@ -20,8 +21,11 @@ class Scrip {
         tuple[Db.colOldBSECodes]?.split(DatabaseActions.delimiter) ?? [];
     oldNSECodes =
         tuple[Db.colOldNSECodes]?.split(DatabaseActions.delimiter) ?? [];
+    aka =
+        tuple[Db.colAKA]?.split(DatabaseActions.delimiter) ?? [];
     oldBSECodes.remove("");
     oldNSECodes.remove("");
+    aka.remove("");
   }
 
   Map<String, dynamic> toDbTuple() {
@@ -31,6 +35,7 @@ class Scrip {
       Db.colNSECode: nseCode,
       Db.colOldBSECodes: oldBSECodes.join(DatabaseActions.delimiter),
       Db.colOldNSECodes: oldNSECodes.join(DatabaseActions.delimiter),
+      Db.colAKA: aka.join(DatabaseActions.delimiter),
     };
   }
 

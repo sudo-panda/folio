@@ -24,6 +24,7 @@ class Db {
   static String colOldNSECodes = 'old_nse_codes';
   static String colExch = 'exchange';
   static String colName = 'name';
+  static String colAKA = 'aka';
   static String colKey = 'key';
   static String colQty = 'qty';
   static String colGrossQty = 'gross_qty';
@@ -84,7 +85,8 @@ class Db {
         '$colNSECode TEXT UNIQUE, '
         '$colOldBSECodes TEXT, '
         '$colOldNSECodes TEXT, '
-        '$colName TEXT UNIQUE'
+        '$colName TEXT UNIQUE, '
+        '$colAKA TEXT'
         ')');
   }
 

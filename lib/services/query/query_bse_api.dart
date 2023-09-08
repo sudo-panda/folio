@@ -9,10 +9,11 @@ class QueryBSEAPI {
     var dio = Dio()
       ..options.headers = {
         'User-Agent'.toLowerCase():
-            'Mozilla/5.0 (X11; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0',
-        'Accept'.toLowerCase(): 'application/json, text/plain, */*',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept'.toLowerCase(): '*/*',
         'Accept-Language'.toLowerCase(): 'en-US,en;q=0.5',
         'Origin'.toLowerCase(): ' https://www.bseindia.com',
+        'Referer'.toLowerCase(): ' https://www.bseindia.com',
       };
     try {
       Response<String> r = await dio.get(
@@ -33,7 +34,7 @@ class QueryBSEAPI {
         double? percentChange = (prevClose == 0) ? null : ((change * 100.0) / prevClose);
         var sign = change.sign.round();
         var ret = Latest.fromData(
-            double.parse(data['CurrVal']),
+            currVal,
             change.abs().toStringAsFixed(2),
             percentChange?.abs().toStringAsFixed(2) ?? "-",
             sign,

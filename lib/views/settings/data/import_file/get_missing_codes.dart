@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:folio/helpers/database_actions.dart';
 import 'package:folio/models/trade/parsed_file_logs.dart';
 import 'package:folio/views/settings/data/import_file/correct_invalid_logs.dart';
 import 'package:folio/views/settings/data/import_file/name_code_tile.dart';
+
+import 'package:folio/services/database/database.dart';
+import 'package:folio/views/settings/data/import_file/show_valid_logs.dart';
 
 class GetMissingCodes extends StatefulWidget {
   final ParsedFileLogs _logs;
@@ -16,7 +20,6 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
   late List<NameCode> correctedCodes;
   late Map<String, int> nameIndexMap;
   late Future<List<NameCode>> codesFuture;
-  late List<bool> isCorrected;
   late bool isLoading;
 
   @override
@@ -38,10 +41,13 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(correctedCodes.length == 0 ? Icons.arrow_forward : Icons.check),
-            onPressed: isLoading ? null : () async {
-              await nextPage(context);
-            },
+            icon: Icon(
+                correctedCodes.length == 0 ? Icons.arrow_forward : Icons.check),
+            onPressed: isLoading
+                ? null
+                : () async {
+                    await nextPage(context);
+                  },
           )
         ],
       ),
@@ -111,12 +117,26 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
   }
 
   Future<void> nextPage(BuildContext context) async {
-    if (isCorrected.contains(false)) {
+    setState(() {
+      isLoading = true;
+    });
+
+    bool areAllCorrect = true;
+    List<String> invalidStocks = [];
+    for (var nameCode in correctedCodes) {
+      if (!(await nameCode.isCorrect())) {
+        areAllCorrect = false;
+        invalidStocks.add(nameCode.name);
+      }
+    }
+
+    if (!areAllCorrect) {
       await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: Text("Please provide all required codes"),
+            content: Text("Invalid: ${invalidStocks.join(", ")}"),
             actions: [
               TextButton(
                 child: Text("OK"),
@@ -128,18 +148,38 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
       );
     } else {
       validateLogs();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CorrectInvalidLogs(widget._logs),
-        ),
-      );
+      if (widget._logs.invalidLogs.length != 0) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CorrectInvalidLogs(widget._logs),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ShowValidLogs(widget._logs.validLogs),
+          ),
+        );
+      }
     }
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void validateLogs() {
     List<int> removeIndices = [];
     int i = 0;
+    for (var nameCode in correctedCodes) {
+      if (nameCode.bseCode != null)
+        DatabaseActions.addToScripAKA("BSE", nameCode.name, nameCode.bseCode!);
+      else if (nameCode.nseCode != null)
+        DatabaseActions.addToScripAKA("NSE", nameCode.name, nameCode.nseCode!);
+    }
+
     for (var log in widget._logs.invalidLogs) {
       i++;
       var index = nameIndexMap[log.name];
@@ -161,14 +201,9 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
       widget._logs.invalidLogs.removeAt(index);
   }
 
-  void updateCode(int index, String? bseCode, String? nseCode) {
+  void updateCode(int index, String? bseCode, String? nseCode) async {
     correctedCodes[index].bseCode = bseCode;
     correctedCodes[index].nseCode = nseCode;
-
-    if (correctedCodes[index].isCorrect())
-      isCorrected[index] = true;
-    else
-      isCorrected[index] = false;
   }
 
   Future<List<NameCode>> getStocksWithInvalidCodes(
@@ -190,8 +225,6 @@ class _GetMissingCodesState extends State<GetMissingCodes> {
       }
     }
 
-    isCorrected = List<bool>.filled(correctedCodes.length, false);
-
     setState(() {
       isLoading = false;
     });
@@ -207,11 +240,32 @@ class NameCode {
 
   NameCode(this.name, {this.bseCode, this.nseCode});
 
-  bool isCorrect() {
-    if (isBSECodeRequired && isNSECodeRequired)
-      return bseCode != null && nseCode != null;
-    if (isBSECodeRequired) return bseCode != null;
-    if (isNSECodeRequired) return nseCode != null;
+  Future<bool> isCorrect() async {
+    List<Map<String, dynamic>>? bseScripsTuple, nseScripsTuple;
+    if (bseCode == null) {
+      if (isBSECodeRequired) return false;
+    } else {
+      bseScripsTuple = await DatabaseActions.getScripsFromCode("BSE", bseCode!);
+      if (bseScripsTuple.length != 1) {
+        return false;
+      }
+    }
+
+    if (nseCode == null) {
+      if (isNSECodeRequired) return false;
+    } else {
+      nseScripsTuple = await DatabaseActions.getScripsFromCode("NSE", nseCode!);
+      if (nseScripsTuple.length != 1) {
+        return false;
+      }
+    }
+
+    if (nseScripsTuple?.length == 1 && bseScripsTuple?.length == 1) {
+      if (bseScripsTuple?.first[Db.colRowID] != nseScripsTuple?.first[Db.colRowID]) {
+        return false;
+      }
+    }
+
     return true;
   }
 }

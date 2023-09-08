@@ -30,9 +30,9 @@ class _DetailsViewState extends State<DetailsView>
   Latest? _bseLatest;
   Latest? _nseLatest;
   TradeCycle? _computedCycle;
-  late TradeSummary _summary;
-  late Future<TradeSummary> _futureSummary;
-  late Future<List<TradeLog>> _futureLogs;
+  TradeSummary? _summary;
+  Future<TradeSummary>? _futureSummary;
+  Future<List<TradeLog>>? _futureLogs;
 
   StreamSubscription<Latest?>? _latestBSEStreamSub;
   StreamSubscription<Latest?>? _latestNSEStreamSub;
@@ -72,7 +72,7 @@ class _DetailsViewState extends State<DetailsView>
       _summary = TradeSummary(DatabaseActions.getBuyTrades(_stock.id!),
           DatabaseActions.getSellTrades(_stock.id!));
 
-      _futureSummary = _summary.calculateSummary(0);
+      _futureSummary = _summary?.calculateSummary(0);
       _futureLogs = DatabaseActions.getStockTrades(_stock.id!);
     }
 
@@ -419,7 +419,7 @@ class _DetailsViewState extends State<DetailsView>
                                                               _rateController
                                                                   .text)) ??
                                                       0;
-                                              var cycle = _summary.computeCycle(
+                                              var cycle = _summary?.computeCycle(
                                                   qty, rate);
                                               if (cycle != null) {
                                                 setState(() {
@@ -483,7 +483,7 @@ class _DetailsViewState extends State<DetailsView>
                       );
                     }
 
-                    if (_summary.portfolio.length == 0) {
+                    if (_summary?.portfolio.length == 0) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
@@ -504,9 +504,9 @@ class _DetailsViewState extends State<DetailsView>
                     return ListView.builder(
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
-                        return LogTile(_summary.portfolio[index]);
+                        return LogTile(_summary!.portfolio[index]);
                       },
-                      itemCount: _summary.portfolio.length,
+                      itemCount: _summary?.portfolio.length ?? 0,
                     );
                   },
                 ),
@@ -548,7 +548,7 @@ class _DetailsViewState extends State<DetailsView>
                         ],
                       );
                     }
-                    if (_summary.cycles.length == 0) {
+                    if ((_summary?.cycles.length ?? 0) == 0) {
                       return Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
@@ -569,9 +569,9 @@ class _DetailsViewState extends State<DetailsView>
                     return ListView.builder(
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
-                        return CycleTile(_summary.cycles[index]);
+                        return CycleTile(_summary!.cycles[index]);
                       },
-                      itemCount: _summary.cycles.length,
+                      itemCount: _summary?.cycles.length ?? 0,
                     );
                   },
                 ),
